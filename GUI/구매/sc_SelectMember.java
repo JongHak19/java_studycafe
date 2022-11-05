@@ -37,6 +37,13 @@ public class sc_SelectMember extends JFrame {
 		cp.add(mem);
 		cp.add(no_mem);
 		
+		mem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+					new sc_Login();
+					// 회원 선택 시 Login 창 뜨게 한 후 회원,비회원 선택 창 숨기는 것 구현해야함
+				}
+		 	});
+		
 		no_mem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int result = JOptionPane.showConfirmDialog(null,
