@@ -1,3 +1,5 @@
+package studycafe;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -16,7 +18,7 @@ public class MainFrame extends JFrame{
 		 
         Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
         setLocation((windowSize.width - frameSize.width) / 2, //화면 중앙에 메인 프레임 띄우기
-                (windowSize.height - frameSize.height) / 2);
+                (windowSize.height - frameSize.height) / 2 - 10);
         
 		c.setBackground(back);		
 		c.setLayout(null);	
@@ -33,6 +35,7 @@ public class MainFrame extends JFrame{
 			public void actionPerformed(ActionEvent e) {	
 				AdminPanel adminp = new AdminPanel();
 				c.add(adminp);
+				adminp.updateUI();
 				adminb.setVisible(false);
 			}
 		});
@@ -42,18 +45,28 @@ public class MainFrame extends JFrame{
 	}
 	
 	class AdminPanel extends JPanel{
+		public AdminPanel() {
+			this.setSize(1100,600);
+			this.setLayout(new BorderLayout());
+			BarPanel bar = new BarPanel();
+			bar.updateUI();
+			this.add(bar, BorderLayout.NORTH);
+			setBackground(but);
+			this.setLocation(90, 100);	
+		}
+		
+	}
+	class BarPanel extends JPanel{
 		JButton SeatStatus = new JButton("좌석 현황");
 		JButton member = new JButton("회원 관리");
 		JButton sales = new JButton("매출");
-		public AdminPanel() {
-			setSize(1100,700);
-			setBackground(but);
-			setVisible(true);
+		public BarPanel() {
+			this.setSize(1100,80);
+			this.setLayout(new GridLayout(1,3));
 			this.add(SeatStatus);
-			this.setLocation(90, 30);	
-			setVisible(true);
+			this.add(member);
+			this.add(sales);
 		}
-		
 	}
 	public static void main(String [] args) {
 		new MainFrame();
