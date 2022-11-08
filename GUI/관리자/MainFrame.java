@@ -4,11 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import studycafe.Choice_member.join_view;
-import studycafe.Choice_member.main_panel;
-import studycafe.Choice_member.member_view;
-import studycafe.Choice_member.notmember_view;
-
 public class MainFrame extends JFrame{
 	Color back_c = new Color(0x0E1D35);
 	Color button_c = new Color(0xDDDEE5);
@@ -16,7 +11,7 @@ public class MainFrame extends JFrame{
 	Font button_font = new Font("맑은 고딕", Font.BOLD, 40);
 	
 	public MainFrame(){
-		setTitle("스터디 카페");
+		setTitle("스터디 카페");		
 		setSize(1300,800);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Container c = getContentPane();
@@ -28,36 +23,7 @@ public class MainFrame extends JFrame{
         
 		c.setBackground(back_c);		
 		c.setLayout(null);	
-		
-		//회원 비회원 버튼
-		main_panel mp = new main_panel();	// 회원 비회원 선택 화면 패널
-		c.add(mp);
 
-		member_view mv = new member_view();	// 회원 선택시 화면 패널
-		mp.member.addActionListener(new ActionListener() {	// 회원 버튼을 눌렀을 때
-			public void actionPerformed(ActionEvent e) {
-				mp.setVisible(false);
-				c.add(mv);	// 회원 화면 부착
-			}
-		});
-		
-		join_view jv = new join_view();		// 회원 가입 화면 패널
-		notmember_view nmv = new notmember_view();	// 비회원 선택시 화면 패널
-		mp.not_member.addActionListener(new ActionListener() {	// 비회원 버튼을 눌렀을 때
-			public void actionPerformed(ActionEvent e) {
-				int result = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
-						"회원가입을 하시겠습니까?", "Confirm", JOptionPane.YES_NO_OPTION);
-				
-				if(result == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
-					mp.setVisible(false);
-					c.add(jv);	// 회원 가입 화면 부착
-				}
-				else if(result == JOptionPane.NO_OPTION) {	// 비회원으로 구매하는 경우
-					mp.setVisible(false);
-					c.add(nmv);	// 회원 화면 부착
-				}				
-			}
-		});
 		//버튼 객체 생성
 		JButton[] seat = new JButton[60];
 		JButton admin = new JButton("관리");
@@ -237,10 +203,12 @@ public class MainFrame extends JFrame{
 				public void actionPerformed(ActionEvent e) {	
 					LonginPanel login = new LonginPanel();
 					c.add(login);
-					MainFrame.this.removeAll();
-					
+					c.removeAll();
+					c.setVisible(false);
 					main_panel mp = new main_panel();	// 회원 비회원 선택 화면 패널
 					c.add(mp);
+					c.setVisible(true);	
+					
 
 					member_view mv = new member_view();	// 회원 선택시 화면 패널
 					mp.member.addActionListener(new ActionListener() {	// 회원 버튼을 눌렀을 때
@@ -267,6 +235,7 @@ public class MainFrame extends JFrame{
 							}				
 						}
 					});
+					
 				}
 			});
 		}
