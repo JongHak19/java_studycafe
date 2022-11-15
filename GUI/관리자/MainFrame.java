@@ -3,6 +3,8 @@ package studycafe;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.*;
 
 public class MainFrame extends JFrame{
 	Color back_c = new Color(0x0E1D35);
@@ -24,304 +26,297 @@ public class MainFrame extends JFrame{
         
 		c.setBackground(back_c);		
 		c.setLayout(null);	
-
+		seat s = new seat();
+		c.add(s);
+		
+		setVisible(true);	
+	}
+	class seat extends JPanel{
 		//버튼 객체 생성
 		JButton[] seat = new JButton[60];
 		JButton admin = new JButton("관리");
-		admin.setBounds(1200, 650, 70, 30);
-		admin.setBackground(button_c);
-		c.add(admin);
-		admin.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {	
-				Login adminp = new Login();
-				c.removeAll();
-				
-				c.setVisible(false);
-				c.add(adminp);
-				c.setVisible(true);				
-				}
-		});
-		
-		
-		for(int i=0;i<60;i++) {
-			seat[i] = new JButton(Integer.toString(i+1));
-			seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
-			seat[i].setSize(80,50);
-			seat[i].setBackground(button_c);
-			
-			/*
-			seat[i].addActionListener(new ActionListner() {
-				public void actionPerformed(ActionEvent e) {
-					
-				}
-			});
-			*/
-			//seat[i].setLocation(50*(i+1),50*(i+1));
-			//c.add(seat[i]);
-			//setVisible(true);
-		}
-		
-		/*
-		seat[0].setLocation(50,50);
-		c.add(seat[0]);
-		seat[1].setLocation(130,50);
-		c.add(seat[1]);
-		seat[2].setLocation(210,50);
-		c.add(seat[2]);
-		*/
-		
-		seat[0].setLocation(125,100);
-		c.add(seat[0]);
-		seat[1].setLocation(205,100);
-		c.add(seat[1]);
-		seat[2].setLocation(285,100);
-		c.add(seat[2]);
-		seat[3].setLocation(365,100);
-		c.add(seat[3]);
-		seat[4].setLocation(445,100);
-		c.add(seat[4]);
-		seat[5].setLocation(525,100);
-		c.add(seat[5]);
-		seat[6].setLocation(605,100);
-		c.add(seat[6]);
-		seat[7].setLocation(685,100);
-		c.add(seat[7]);
-		seat[8].setLocation(765,100);
-		c.add(seat[8]);
-		seat[9].setLocation(845,100);
-		c.add(seat[9]);
-
-		seat[10].setLocation(125,150);
-		c.add(seat[10]);
-		seat[11].setLocation(205,150);
-		c.add(seat[11]);
-		seat[12].setLocation(285,150);
-		c.add(seat[12]);
-		seat[13].setLocation(365,150);
-		c.add(seat[13]);
-		seat[14].setLocation(445,150);
-		c.add(seat[14]);
-		seat[15].setLocation(525,150);
-		c.add(seat[15]);
-		seat[16].setLocation(605,150);
-		c.add(seat[16]);
-		seat[17].setLocation(685,150);
-		c.add(seat[17]);
-		seat[18].setLocation(765,150);
-		c.add(seat[18]);
-		seat[19].setLocation(845,150);
-		c.add(seat[19]);
-
-		seat[20].setLocation(125,300);
-		c.add(seat[20]);
-		seat[21].setLocation(205,300);
-		c.add(seat[21]);
-		seat[22].setLocation(285,300);
-		c.add(seat[22]);
-		seat[23].setLocation(365,300);
-		c.add(seat[23]);
-		seat[24].setLocation(445,300);
-		c.add(seat[24]);
-		seat[25].setLocation(125,350);
-		c.add(seat[25]);
-		seat[26].setLocation(205,350);
-		c.add(seat[26]);
-		seat[27].setLocation(285,350);
-		c.add(seat[27]);
-		seat[28].setLocation(365,350);
-		c.add(seat[28]);
-		seat[29].setLocation(445,350);
-		c.add(seat[29]);
-
-		seat[30].setLocation(125,500);
-		c.add(seat[30]);
-		seat[31].setLocation(205,500);
-		c.add(seat[31]);
-		seat[32].setLocation(285,500);
-		c.add(seat[32]);
-		seat[33].setLocation(365,500);
-		c.add(seat[33]);
-		seat[34].setLocation(445,500);
-		c.add(seat[34]);
-		seat[35].setLocation(125,570);
-		c.add(seat[35]);
-		seat[36].setLocation(205,570);
-		c.add(seat[36]);
-		seat[37].setLocation(285,570);
-		c.add(seat[37]);
-		seat[38].setLocation(365,570);
-		c.add(seat[38]);
-		seat[39].setLocation(445,570);
-		c.add(seat[39]);
-
-		seat[40].setLocation(845,370);
-		c.add(seat[40]);
-		seat[41].setLocation(925,370);
-		c.add(seat[41]);
-		seat[42].setLocation(845,420);
-		c.add(seat[42]);
-		seat[43].setLocation(925,420);
-		c.add(seat[43]);
-		seat[44].setLocation(845,470);
-		c.add(seat[44]);
-		seat[45].setLocation(925,470);
-		c.add(seat[45]);
-		seat[46].setLocation(845,520);
-		c.add(seat[46]);
-		seat[47].setLocation(925,520);
-		c.add(seat[47]);
-		seat[48].setLocation(845,570);
-		c.add(seat[48]);
-		seat[49].setLocation(925,570);
-		c.add(seat[49]);
-
-		seat[50].setLocation(1075, 120);
-		c.add(seat[50]);
-		seat[51].setLocation(1075, 170);
-		c.add(seat[51]);
-		seat[52].setLocation(1075, 220);
-		c.add(seat[52]);
-		seat[53].setLocation(1075, 270);
-		c.add(seat[53]);
-		seat[54].setLocation(1075, 320);
-		c.add(seat[54]);
-		seat[55].setLocation(1075, 370);
-		c.add(seat[55]);
-		seat[56].setLocation(1075, 420);
-		c.add(seat[56]);
-		seat[57].setLocation(1075, 470);
-		c.add(seat[57]);
-		seat[58].setLocation(1075, 520);
-		c.add(seat[58]);
-		seat[59].setLocation(1075, 570);
-		c.add(seat[59]);
-		
-		
-		for(int i = 0; i < 60 ; i++) {
-			seat[i].addActionListener(new ActionListener(){
+		public seat() {
+			this.setBackground(back_c);
+			this.setLayout(null);
+			this.setSize(1280,700);
+			this.setLocation(-10,10);
+			admin.setBounds(1200, 650, 70, 30);
+			admin.setBackground(button_c);
+			this.add(admin);
+			admin.addActionListener(new ActionListener(){
 				@Override
 				public void actionPerformed(ActionEvent e) {	
-					// 좌석 선택 후 회원 비회원 선택 화면
-					c.removeAll();
-					c.setVisible(false);
-					main_panel mp = new main_panel();	// 회원 비회원 선택 화면 패널
-					c.add(mp);
-					
-					member_view mv = new member_view();	// 회원 선택시 화면 패널
-					c.add(mv);
-					mv.setVisible(false); // 비활성화 상태로 두기
-					
-					mp.member.addActionListener(new ActionListener() {	// 회원 버튼을 눌렀을 때
-						public void actionPerformed(ActionEvent e) {
-							mp.setVisible(false);
-							mv.setVisible(true); // c.add(mv);	
-						}
-					});
-					
-					nonmember_view nmv = new nonmember_view();	// 비회원 선택시 화면 패널
-					c.add(nmv);
-					nmv.setVisible(false); // 비활성화 상태로 두기
-					
-					join_view jv = new join_view();		// 회원 가입 화면 패널
-					c.add(jv);
-					jv.setVisible(false); // 비활성화 상태로 두기
-					
-					mp.not_member.addActionListener(new ActionListener() {	// 비회원 버튼을 눌렀을 때
-						public void actionPerformed(ActionEvent e) {
-							int result_n = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
-									"회원가입을 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
-							
-							if(result_n == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
-								mp.setVisible(false);
-								jv.setVisible(true); // c.add(jv);	// 회원 가입 화면 부착
-							}
-							else if(result_n == JOptionPane.NO_OPTION) {	// 비회원으로 구매하는 경우
-								mp.setVisible(false);
-								nmv.setVisible(true); // c.add(nmv);	// 비회원 화면 부착
-							}				
-						}
-					});
-					
-					mp.Back_c.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 (나중에 얘기 해보기)
-						public void actionPerformed(ActionEvent e) {
-							//mp.setVisible(false);
-							//좌석 선택 화면 붙이기, 활성화
-						}
-					});
-					
-					// 회원 로그인 화면(mv)
-					mv.Back_m.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
-						public void actionPerformed(ActionEvent e) {
-							mv.setVisible(false);
-							mp.setVisible(true);
-						}
-					});
-					
-					// 비회원 
-					// 예 : 회원 가입 화면(jv)
-					jv.Back_j.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
-						public void actionPerformed(ActionEvent e) {
-							jv.setVisible(false);
-							mp.setVisible(true);
-						}
-					});
-					member_buy mb = new member_buy();	// 회원 구매 패널
-					c.add(mb);
-					mb.setVisible(false);
-					jv.join_j.addActionListener(new ActionListener() {	// 가입 버튼 눌렀을 때 
-						public void actionPerformed(ActionEvent e) {
-							int result_j = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
-									"가입 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
-							
-							if(result_j == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
-								JOptionPane.showMessageDialog(null, "회원가입 되었습니다.", "스터디 카페", JOptionPane.INFORMATION_MESSAGE);
-								jv.setVisible(false);
-								mb.setVisible(true); // 구매 화면 보이기
-							}
-						}
-					});
-					
-					// 회원 구매 화면
-					mb.Back_mb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
-						public void actionPerformed(ActionEvent e) {
-							mb.setVisible(false);
-							jv.setVisible(true);
-						}
-					});
-					
-					// 아니오 : 비회원 로그인 화면(nmv)
-					nmv.Back_n.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
-						public void actionPerformed(ActionEvent e) {
-							nmv.setVisible(false);
-							mp.setVisible(true);
-						}
-					});
-					
-					nonmember_buy nmb = new nonmember_buy();	// 비회원 구매 패널
-					c.add(nmb);
-					nmb.setVisible(false);
-					nmv.join_n.addActionListener(new ActionListener() {	// 가입 버튼 눌렀을 때 
-						public void actionPerformed(ActionEvent e) {
-							nmv.setVisible(false);
-							nmb.setVisible(true); // 비회원 구매 화면 보이기
-						}
-					});
-					
-					// 비회원 구매 화면
-					nmb.Back_nb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
-						public void actionPerformed(ActionEvent e) {
-							nmb.setVisible(false);
-							nmv.setVisible(true);
-						}
-					});
-					
-					c.setVisible(true);
-				}
+					Login adminp = new Login();
+					MainFrame.this.getContentPane().removeAll();
+					MainFrame.this.setVisible(false);
+					MainFrame.this.add(adminp);
+					MainFrame.this.setVisible(true);				
+					}
 			});
+			
+			
+			for(int i=0;i<60;i++) {
+				seat[i] = new JButton(Integer.toString(i+1));
+				seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
+				seat[i].setSize(80,50);
+				seat[i].setBackground(button_c);
+
+			}
+			
+			seat[0].setLocation(125,100);
+			this.add(seat[0]);
+			seat[1].setLocation(205,100);
+			this.add(seat[1]);
+			seat[2].setLocation(285,100);
+			this.add(seat[2]);
+			seat[3].setLocation(365,100);
+			this.add(seat[3]);
+			seat[4].setLocation(445,100);
+			this.add(seat[4]);
+			seat[5].setLocation(525,100);
+			this.add(seat[5]);
+			seat[6].setLocation(605,100);
+			this.add(seat[6]);
+			seat[7].setLocation(685,100);
+			this.add(seat[7]);
+			seat[8].setLocation(765,100);
+			this.add(seat[8]);
+			seat[9].setLocation(845,100);
+			this.add(seat[9]);
+
+			seat[10].setLocation(125,150);
+			this.add(seat[10]);
+			seat[11].setLocation(205,150);
+			this.add(seat[11]);
+			seat[12].setLocation(285,150);
+			this.add(seat[12]);
+			seat[13].setLocation(365,150);
+			this.add(seat[13]);
+			seat[14].setLocation(445,150);
+			this.add(seat[14]);
+			seat[15].setLocation(525,150);
+			this.add(seat[15]);
+			seat[16].setLocation(605,150);
+			this.add(seat[16]);
+			seat[17].setLocation(685,150);
+			this.add(seat[17]);
+			seat[18].setLocation(765,150);
+			this.add(seat[18]);
+			seat[19].setLocation(845,150);
+			this.add(seat[19]);
+
+			seat[20].setLocation(125,300);
+			this.add(seat[20]);
+			seat[21].setLocation(205,300);
+			this.add(seat[21]);
+			seat[22].setLocation(285,300);
+			this.add(seat[22]);
+			seat[23].setLocation(365,300);
+			this.add(seat[23]);
+			seat[24].setLocation(445,300);
+			this.add(seat[24]);
+			seat[25].setLocation(125,350);
+			this.add(seat[25]);
+			seat[26].setLocation(205,350);
+			this.add(seat[26]);
+			seat[27].setLocation(285,350);
+			this.add(seat[27]);
+			seat[28].setLocation(365,350);
+			this.add(seat[28]);
+			seat[29].setLocation(445,350);
+			this.add(seat[29]);
+
+			seat[30].setLocation(125,500);
+			this.add(seat[30]);
+			seat[31].setLocation(205,500);
+			this.add(seat[31]);
+			seat[32].setLocation(285,500);
+			this.add(seat[32]);
+			seat[33].setLocation(365,500);
+			this.add(seat[33]);
+			seat[34].setLocation(445,500);
+			this.add(seat[34]);
+			seat[35].setLocation(125,570);
+			this.add(seat[35]);
+			seat[36].setLocation(205,570);
+			this.add(seat[36]);
+			seat[37].setLocation(285,570);
+			this.add(seat[37]);
+			seat[38].setLocation(365,570);
+			this.add(seat[38]);
+			seat[39].setLocation(445,570);
+			this.add(seat[39]);
+
+			seat[40].setLocation(845,370);
+			this.add(seat[40]);
+			seat[41].setLocation(925,370);
+			this.add(seat[41]);
+			seat[42].setLocation(845,420);
+			this.add(seat[42]);
+			seat[43].setLocation(925,420);
+			this.add(seat[43]);
+			seat[44].setLocation(845,470);
+			this.add(seat[44]);
+			seat[45].setLocation(925,470);
+			this.add(seat[45]);
+			seat[46].setLocation(845,520);
+			this.add(seat[46]);
+			seat[47].setLocation(925,520);
+			this.add(seat[47]);
+			seat[48].setLocation(845,570);
+			this.add(seat[48]);
+			seat[49].setLocation(925,570);
+			this.add(seat[49]);
+
+			seat[50].setLocation(1075, 120);
+			this.add(seat[50]);
+			seat[51].setLocation(1075, 170);
+			this.add(seat[51]);
+			seat[52].setLocation(1075, 220);
+			this.add(seat[52]);
+			seat[53].setLocation(1075, 270);
+			this.add(seat[53]);
+			seat[54].setLocation(1075, 320);
+			this.add(seat[54]);
+			seat[55].setLocation(1075, 370);
+			this.add(seat[55]);
+			seat[56].setLocation(1075, 420);
+			this.add(seat[56]);
+			seat[57].setLocation(1075, 470);
+			this.add(seat[57]);
+			seat[58].setLocation(1075, 520);
+			this.add(seat[58]);
+			seat[59].setLocation(1075, 570);
+			this.add(seat[59]);
+			
+			
+			for(int i = 0; i < 60 ; i++) {
+				seat[i].addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e) {	
+						// 좌석 선택 후 회원 비회원 선택 화면
+						MainFrame.this.getContentPane().removeAll();
+						MainFrame.this.setVisible(false);
+						main_panel mp = new main_panel();	// 회원 비회원 선택 화면 패널
+						MainFrame.this.add(mp);
+						member_view mv = new member_view();	// 회원 선택시 화면 패널
+						MainFrame.this.add(mv);
+						mv.setVisible(false); // 비활성화 상태로 두기
+						
+						mp.member.addActionListener(new ActionListener() {	// 회원 버튼을 눌렀을 때
+							public void actionPerformed(ActionEvent e) {
+								mp.setVisible(false);
+								mv.setVisible(true); // c.add(mv);	
+							}
+						});
+						
+						nonmember_view nmv = new nonmember_view();	// 비회원 선택시 화면 패널
+						MainFrame.this.add(nmv);
+						nmv.setVisible(false); // 비활성화 상태로 두기
+						
+						join_view jv = new join_view();		// 회원 가입 화면 패널
+						MainFrame.this.add(jv);
+						jv.setVisible(false); // 비활성화 상태로 두기
+						
+						mp.not_member.addActionListener(new ActionListener() {	// 비회원 버튼을 눌렀을 때
+							public void actionPerformed(ActionEvent e) {
+								int result_n = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
+										"회원가입을 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
+								
+								if(result_n == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
+									mp.setVisible(false);
+									jv.setVisible(true); // c.add(jv);	// 회원 가입 화면 부착
+								}
+								else if(result_n == JOptionPane.NO_OPTION) {	// 비회원으로 구매하는 경우
+									mp.setVisible(false);
+									nmv.setVisible(true); // c.add(nmv);	// 비회원 화면 부착
+								}				
+							}
+						});
+						
+						mp.Back_c.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 (나중에 얘기 해보기)
+							public void actionPerformed(ActionEvent e) {
+								mp.setVisible(false);
+								seat s = new seat();
+								MainFrame.this.setVisible(false);
+								MainFrame.this.add(s);
+								MainFrame.this.setVisible(true);
+								//좌석 선택 화면 붙이기, 활성화
+							}
+						});
+						
+						// 회원 로그인 화면(mv)
+						mv.Back_m.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
+							public void actionPerformed(ActionEvent e) {
+								mv.setVisible(false);
+								mp.setVisible(true);
+							}
+						});
+						
+						// 비회원 
+						// 예 : 회원 가입 화면(jv)
+						jv.Back_j.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
+							public void actionPerformed(ActionEvent e) {
+								jv.setVisible(false);
+								mp.setVisible(true);
+							}
+						});
+						member_buy mb = new member_buy();	// 회원 구매 패널
+						MainFrame.this.add(mb);
+						mb.setVisible(false);
+						jv.join_j.addActionListener(new ActionListener() {	// 가입 버튼 눌렀을 때 
+							public void actionPerformed(ActionEvent e) {
+								int result_j = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
+										"가입 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
+								
+								if(result_j == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
+									JOptionPane.showMessageDialog(null, "회원가입 되었습니다.", "스터디 카페", JOptionPane.INFORMATION_MESSAGE);
+									jv.setVisible(false);
+									mb.setVisible(true); // 구매 화면 보이기
+								}
+							}
+						});
+						
+						// 회원 구매 화면
+						mb.Back_mb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
+							public void actionPerformed(ActionEvent e) {
+								mb.setVisible(false);
+								jv.setVisible(true);
+							}
+						});
+						
+						// 아니오 : 비회원 로그인 화면(nmv)
+						nmv.Back_n.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
+							public void actionPerformed(ActionEvent e) {
+								nmv.setVisible(false);
+								mp.setVisible(true);
+							}
+						});
+						
+						nonmember_buy nmb = new nonmember_buy();	// 비회원 구매 패널
+						MainFrame.this.add(nmb);
+						nmb.setVisible(false);
+						nmv.join_n.addActionListener(new ActionListener() {	// 가입 버튼 눌렀을 때 
+							public void actionPerformed(ActionEvent e) {
+								nmv.setVisible(false);
+								nmb.setVisible(true); // 비회원 구매 화면 보이기
+							}
+						});
+						
+						// 비회원 구매 화면
+						nmb.Back_nb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
+							public void actionPerformed(ActionEvent e) {
+								nmb.setVisible(false);
+								nmv.setVisible(true);
+							}
+						});
+						
+						MainFrame.this.setVisible(true);
+					}
+				});
+			}
 		}
 		
-		setVisible(true);	
 	}
 	class main_panel extends JPanel {	// 회원 비회원 선택 화면
 		private JButton member = new JButton("회원"); // 회원 버튼
@@ -354,9 +349,9 @@ public class MainFrame extends JFrame{
 	class member_view extends JPanel {	// 회원 화면 
 		private JLabel title_m = new JLabel("로그인");
 		private JLabel IDl_m = new JLabel("아이디");
-		private JTextField IDtf_m = new JTextField(40);	// ID 입력 받는 텍스트 필드
+		private JTextField IDtf_m = new JTextField(10);	// ID 입력 받는 텍스트 필드
 		private JLabel PSl_m = new JLabel("비밀번호");
-		private JTextField PStf_m = new JTextField(40);	// Password 입력 받는 텍스트 필드
+		private JTextField PStf_m = new JTextField(10);	// Password 입력 받는 텍스트 필드
 		private JButton login_m = new JButton("로그인");
 		private JButton Back_m = new JButton("이전");		// 뒤로 가는 버튼
 		
@@ -386,15 +381,120 @@ public class MainFrame extends JFrame{
 			PStf_m.setFont(font_in);
 			add(PStf_m);
 			
+			loginListener logL = new loginListener();
 			login_m.setBounds(600,420,100,50); // 위치, 크기 2
 			login_m.setFont(font);
-			login_m.setBackground(button_c);		
+			login_m.setBackground(button_c);	
+			login_m.addActionListener(logL);
 			add(login_m);
 			
 			Back_m.setBounds(950,520,80,40); // 위치, 크기 2
 			Back_m.setFont(font);
 			Back_m.setBackground(button_c);		
 			add(Back_m);
+		}
+		class loginListener implements ActionListener{
+			public void actionPerformed(ActionEvent e) {
+				if(IDtf_m.getText().equals("test")) {
+					if(PStf_m.getText().equals("1234")) {
+						int result = JOptionPane.showConfirmDialog(null, 
+								"이용권을 구매하시겠습니까?", "이용권 구매",JOptionPane.YES_NO_OPTION);
+						if(result == JOptionPane.YES_OPTION) {
+							MainFrame.this.setVisible(false);
+							MainFrame.this.getContentPane().removeAll();
+							MainFrame.this.add(new sc_Buypass());
+							MainFrame.this.setVisible(true);
+					}
+						else {
+							JOptionPane.showMessageDialog(null, "남은시간이 차감됩니다","이용권",JOptionPane.PLAIN_MESSAGE);
+						}
+						
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "비밀번호를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);
+					}
+				}
+				else
+					JOptionPane.showMessageDialog(null, "아이디를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	
+	public class sc_Buypass extends JPanel{ // 이용권 구매 창
+		Color back = new Color(0x030066);
+		Color sm_back = new Color(0x99CCFF);
+		Font font = new Font("맑은 고딕", Font.BOLD, 20); 
+		String Hlist[] =  {"2시간  4000원", "4시간  7000원",
+		    	"6시간  10000원","8시간  13000원","10시간  15000원","30시간  50000원",
+		    	"50시간  80000원","100시간  15000원","150시간  21000원","200시간  26000원"};
+		public sc_Buypass(){
+			setTitle("이용권 구매 창");
+			setSize(1000,780);
+			setLocation(220,50);
+			setResizable(false); // 프레임 창 고정
+			setLocationRelativeTo(null); // 창이 가운데 뜨도록
+			setBackground(back_c);
+			
+			setLayout(null);
+		
+			
+			
+			JLabel txtbuy = new JLabel("이용권 구매");
+			JLabel txt2 = new JLabel("* 30시간부터 사물함 이용 가능");
+			
+			txtbuy.setLocation(80, -50);
+			txtbuy.setSize(300,200);
+			txtbuy.setForeground(Color.white);
+		    txtbuy.setFont(font.deriveFont(40.0f));
+		    txt2.setLocation(300, -40);
+			txt2.setSize(210,200);
+			txt2.setForeground(Color.white);
+		    txt2.setFont(font.deriveFont(14.0f));
+		    add(txt2);
+		    add(txtbuy); 
+		    
+		    buyListener bL = new buyListener();
+		    
+		    for(int i = 0; i<5; i++) {
+		    	String text = Hlist[i];
+		    	JButton btn = new JButton(text);
+		    	btn.setLocation(80,100+(i*110));
+		    	btn.setSize(200,100);
+		    	btn.setForeground(Color.black);
+				btn.setBackground(button_c);
+				btn.setFont(font);
+				btn.addActionListener(bL);
+		    	add(btn);
+		    }
+		    for(int i = 5; i<10; i++) {
+		    	String text = Hlist[i];
+		    	JButton btn = new JButton(text);
+		    	btn.setLocation(580,100+((i-5)*110));
+		    	btn.setSize(200,100);
+		    	btn.setForeground(Color.black);
+				btn.setBackground(button_c);
+				btn.setFont(font);
+				btn.addActionListener(bL);
+		    	add(btn);
+		    }
+			
+		    setVisible(true);
+			
+		}
+		class buyListener implements ActionListener{
+			public void actionPerformed(ActionEvent e) {
+				int result = JOptionPane.showConfirmDialog(null,
+						"구매하시겠습니까?","이용권 구매",JOptionPane.YES_NO_OPTION);
+				if(result == JOptionPane.YES_OPTION) {
+					JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
+					
+			}
 		}
 	}
 	
@@ -721,26 +821,144 @@ public class MainFrame extends JFrame{
 		}
 	}
 	class AdminPanel extends JPanel{
+		JButton back = new JButton("이전");
+		JRadioButton seatcolor = new JRadioButton("좌석으로 보기");
+		JRadioButton seatgraph = new JRadioButton("그래프로 보기");
+		ButtonGroup group = new ButtonGroup();
+		seat_color sc = new seat_color(); //좌석으로 보기
+		seat_graph sg = new seat_graph(); //그래프로 보기
+		
+		
 		public AdminPanel() {
+			group.add(seatcolor);
+			group.add(seatgraph);
+			
 			this.setSize(1100,650);
 			this.setLayout(new BorderLayout());
 			BarPanel bar = new BarPanel();
-			bar.updateUI(); //panel update 안하면 이상하게 보임
+			bar.member.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					setVisible(false);
+					removeAll();
+					add(bar, BorderLayout.NORTH);
+					User u = new User();
+					add(u);
+					setVisible(true);
+					
+				}
+			});
+			bar.SeatStatus.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					AdminPanel ap = new AdminPanel();
+					MainFrame.this.add(ap);
+					MainFrame.this.setVisible(true);
+					
+				}
+			});
 			this.add(bar, BorderLayout.NORTH);
 			setBackground(button_c);
 			this.setLocation(90, 60);
+			this.setLayout(null);
 			
+			back.setBounds(950,550,80,40); 
+			back.setFont(font);
+			back.setBackground(button_c);
+			this.add(back);
 			
+			//좌석 현황 - 좌석으로 보기기
+			seatcolor.setBounds(900, 200, 150, 40);
+			seatcolor.setBackground(button_c);
+			seatcolor.setSelected(true);
+			this.add(seatcolor);
+			//좌석 현황 - 그래프로 보기기
+//			next.setBounds(700, 500, 30, 30);
+//			sg.add(next);
+			seatgraph.setBounds(900, 240, 150, 40);
+			seatgraph.setBackground(button_c);
+			this.add(seatgraph);
+			
+			this.add(sc);
+			this.add(sg);
+			sg.setVisible(false);
+			
+			seatcolor.addItemListener(new ItemListener() {
+				
+				public void itemStateChanged(ItemEvent e) {
+					if(e.getStateChange() == ItemEvent.SELECTED) {
+						sg.setVisible(false);
+						sc.setVisible(true);
+					}
+				}
+			});
+			
+			seatgraph.addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent e) {
+					if(e.getStateChange() == ItemEvent.SELECTED) {
+						sc.setVisible(false);
+						sg.setVisible(true);
+					}
+				}
+			});
+			
+			back.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
+			});
+			
+		}
+		
+	}
+	class BarPanel extends JPanel{
+		JButton SeatStatus = new JButton("좌석 현황");
+		JButton member = new JButton("회원 관리");
+		JButton sales = new JButton("매출");
+		
+		public BarPanel() {
+			SeatStatus.setFont(font);
+			member.setFont(font);
+			sales.setFont(font);
+			SeatStatus.setBackground(Color.white);
+			member.setBackground(Color.white);
+			
+			sales.setBackground(Color.white);
+			this.setSize(1100,40);
+			this.setLayout(new GridLayout(1,3));
+			this.add(SeatStatus);
+			this.add(member);
+			this.add(sales);
+		}
+	}
+	
+	class seat_color extends JPanel{
+		Color r = Color.red;
+		Color g = Color.green;
+		Color y = Color.yellow;
+		int randomIndex;
+		Random random = new Random();
+		Color [] color = new Color []{r,g,y};
+		
+		public seat_color() {
+			setLocation(10, 50);
+			setSize(850, 570);
+			this.setBackground(button_c);
 			JButton[] seat = new JButton[60];
-
+			
 			for(int i=0;i<60;i++) {
+				randomIndex = random.nextInt(3);
 				seat[i] = new JButton(Integer.toString(i+1));
 				seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
 				seat[i].setSize(60,45);
-				seat[i].setBackground(back_c);	
+				seat[i].setBackground(color[randomIndex]);
 				seat[i].setForeground(button_c);
 			}
-			
+
 			this.setLayout(null);
 			for(int i =0;i<10;i++) {
 				seat[i].setLocation(i*60+50, 135);
@@ -783,32 +1001,234 @@ public class MainFrame extends JFrame{
 				seat[i+50].setLocation(770, 90+i*45);
 				this.add(seat[i+50]);
 			}
+		}
+	}
+	class seat_graph extends JPanel{
+		Font font = new Font("맑은 고딕", Font.BOLD, 11);
+		ImageIcon nexticon= new ImageIcon("./image/next.png");
+		ImageIcon previcon= new ImageIcon("./image/prev.png");
+		JButton next = new JButton(nexticon);
+		JButton prev = new JButton(previcon);
+		public seat_graph() {
+			setLayout(null);
+			setLocation(10, 50);
+			setSize(850, 570);
+			this.setBackground(button_c);
+			next.setBounds(700, 500, 30, 30);
+			prev.setBounds(650, 500, 30, 30);
 			
+			add(next);
+			add(prev);
 			
 		}
-		
-	}
-	class BarPanel extends JPanel{
-		JButton SeatStatus = new JButton("좌석 현황");
-		JButton member = new JButton("회원 관리");
-		JButton sales = new JButton("매출");
-		
-		public BarPanel() {
-			SeatStatus.setFont(font);
-			member.setFont(font);
-			sales.setFont(font);
-			SeatStatus.setBackground(Color.white);
-			member.setBackground(Color.white);
+		public void paint(Graphics g){
+			this.setBackground(button_c);
+			super.paintComponent(g);
+			g.clearRect(0,0,getWidth(),getHeight());
 			
-			sales.setBackground(Color.white);
-			this.setSize(1100,40);
-			this.setLayout(new GridLayout(1,3));
-			this.add(SeatStatus);
-			this.add(member);
-			this.add(sales);
+			Stroke line = new BasicStroke(3);
+			Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    0, new float[]{9}, 0);
+			Graphics2D g2 = (Graphics2D) g.create();
+			
+			g2.setStroke(line);
+			g2.drawLine(100,50,100,450);
+			g2.drawLine(100,450,750,450);
+			g2.setFont(font);
+			g2.drawString("0", 60, 450);
+			g2.drawString("(%)", 80, 30);
+			
+			for(int i = 0;i<15;i++) {
+				g2.drawString("좌석"+i, i*43+100,470);
+			}
+			g2.setStroke(dashed);
+	        for(int i =1;i<11;i++) {
+	        	g2.drawLine(100,450-i*40,750,450-i*40);
+	        	g2.drawString(""+i*10, 60, 450-i*40);
+	        }
+	        
+	        
+//	        for(int cnt = 1 ;cnt<11;cnt++)
+//	        {
+//	            g.drawString(cnt *10 +"",25,255-20*cnt);
+//	            g.drawLine(50, 250-20*cnt, 350,250-20*cnt);
+//	        }
+//	        g.drawLine(50,20,50,250);
+//	        g.drawString("Java",100,270);
+//	        g.drawString("Python",200,270);
+//	        g.drawString("C#",300,270);
+//	        g.setColor(Color.BLUE);
 		}
 	}
 	
+	public class User extends JPanel{
+		JButton mem_editBtn = new JButton("수정");
+		JButton mem_delBtn = new JButton("삭제");
+		
+		JLabel mem_im = new JLabel("회원정보");
+		JLabel mem_nameL = new JLabel("이름 : ");
+		JLabel mem_ageL = new JLabel("나이 : ");
+		JLabel mem_sL = new JLabel("성별 : ");
+		JLabel mem_phoneL = new JLabel("전화번호 : ");
+		JLabel mem_adrL = new JLabel("주소 : ");
+		JLabel mem_timeL = new JLabel("남은시간 : ");
+		JLabel mem_mfL = new JLabel("남자");
+		JLabel mem_time = new JLabel("00:00:00");
+		
+		JTextField mem_nameT = new JTextField();
+		JTextField mem_ageT = new JTextField();
+		JTextField mem_stxT = new JTextField();
+		JTextField mem_phoneT = new JTextField();
+		JTextArea mem_adrT = new JTextArea();
+		
+		/*JRadioButton mem_rb1 = new JRadioButton("남자");
+		JRadioButton mem_rb2 = new JRadioButton("여자");
+		ButtonGroup mem_group = new ButtonGroup();
+		mem_group.add(mem_rb1);
+		mem_group.add(mem_rb2);
+		mem_rb1.setSelected(true);*/
+
+		public User() {
+			setSize(1100,650);
+			this.setLayout(null);
+		
+			String[] columns = {"이름","나이","성별","전화번호","주소","남은시간"};
+			String[][] data = {{"홍길동","12","남자","010-3423-1234","대한민국","00:00:00"},
+					{"김영희","23","여자","123-4567-8910","대한민국","00:00:00"}
+			};
+			DefaultTableModel model = new DefaultTableModel(data,columns);
+			// 회원 정보 테이블 생성
+			JTable table = new JTable(model);
+			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			JScrollPane scrollPane = new JScrollPane(table);
+			scrollPane.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 테이블 폰트 설정
+			scrollPane.setLocation(30,50);
+			scrollPane.setSize(500,550);
+			this.add(scrollPane);
+			
+			table.addMouseListener(new MouseAdapter() { // 테이블 클릭했을때 회원정보 창에 정보 불러오기
+				public void mouseClicked(MouseEvent e) {
+					int row = table.getSelectedRow();
+					mem_nameT.setText((String)table.getValueAt(row, 0));
+					mem_ageT.setText((String)table.getValueAt(row, 1));
+					mem_mfL.setText((String)table.getValueAt(row, 2));
+					mem_phoneT.setText((String)table.getValueAt(row, 3));
+					mem_adrT.setText((String)table.getValueAt(row, 4));
+					mem_time.setText((String)table.getValueAt(row, 5));
+				}
+			});
+			
+			mem_delBtn.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 삭제버튼
+			mem_delBtn.setLocation(860,560);
+			mem_delBtn.setSize(100,40);
+			mem_delBtn.addActionListener(new ActionListener() { 
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					if(table.getSelectedRow() == -1) {
+						return;
+					}
+					else {
+						model.removeRow(table.getSelectedRow()); // 삭제
+					}
+				}
+			});
+			this.add(mem_delBtn);
+			
+			mem_editBtn.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 수정 버튼
+			mem_editBtn.setLocation(970,560);
+			mem_editBtn.setSize(100,40);
+			this.add(mem_editBtn);
+			mem_editBtn.addActionListener(new ActionListener() {  // 수정버튼 일단 string 으로 구현함
+				public void actionPerformed(ActionEvent e) {
+					int row = table.getSelectedRow();
+					table.setValueAt(mem_nameT.getText(), row, 0);
+					table.setValueAt(mem_ageT.getText(), row, 1);
+					table.setValueAt(mem_mfL.getText(), row, 2);
+					table.setValueAt(mem_phoneT.getText(), row, 3);
+					table.setValueAt(mem_adrT.getText(), row, 4);
+					table.setValueAt(mem_time.getText(), row, 5);
+					}
+			});
+			
+			//
+			// 회원 정보 창
+			//
+			mem_im.setFont(new Font("맑은 고딕", Font.BOLD, 20)); 
+			mem_im.setLocation(600,50);
+			mem_im.setSize(100,25);
+			this.add(mem_im);
+			
+			mem_nameL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 이름 레이블
+			mem_nameL.setLocation(600,100);
+			mem_nameL.setSize(200,25);
+			this.add(mem_nameL);
+			
+			mem_nameT.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 이름 텍스트
+			mem_nameT.setLocation(670,100);
+			mem_nameT.setSize(200,25);
+			this.add(mem_nameT);
+			
+			mem_ageL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 나이 레이블
+			mem_ageL.setLocation(600,150);
+			mem_ageL.setSize(200,25);
+			this.add(mem_ageL);
+			
+			mem_ageT.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 나이 텍스트
+			mem_ageT.setLocation(670,150);
+			mem_ageT.setSize(50,25);
+			this.add(mem_ageT);
+			
+			mem_sL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 성별 레이블
+			mem_sL.setLocation(600,200);
+			mem_sL.setSize(60,25);
+			this.add(mem_sL);
+			
+			//c.add(mem_rb1); c.add(mem_rb2);
+			//mem_rb1.setLocation(670, 280);
+			//mem_rb2.setLocation(700, 280);
+			//mem_rb1.setSize(60,25);
+			//mem_rb2.setSize(60,25);
+			
+			mem_mfL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 성별 표시하는 레이블
+			mem_mfL.setLocation(670,200);
+			mem_mfL.setSize(60,25);
+			this.add(mem_mfL);
+			
+			mem_phoneL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 전화번호 레이블
+			mem_phoneL.setLocation(600,250);
+			mem_phoneL.setSize(100,25);
+			this.add(mem_phoneL);
+			
+			mem_phoneT.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 전화번호 텍스트
+			mem_phoneT.setLocation(700,250);
+			mem_phoneT.setSize(300,25);
+			this.add(mem_phoneT);
+			
+			mem_adrL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 주소 레이블
+			mem_adrL.setLocation(600,350);
+			mem_adrL.setSize(60,25);
+			this.add(mem_adrL);
+			
+			mem_adrT.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 주소 텍스트
+			mem_adrT.setLocation(670,350);
+			mem_adrT.setSize(400,150);
+			mem_adrT.setLineWrap(true);
+			this.add(mem_adrT);
+			
+			mem_timeL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 남은시간 레이블
+			mem_timeL.setLocation(600,300);
+			mem_timeL.setSize(100,25);
+			this.add(mem_timeL);
+			
+			mem_time.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 남은시간 표시하는 레이블
+			mem_time.setLocation(700,300);
+			mem_time.setSize(100,25);
+			this.add(mem_time);
+			
+			setVisible(true);
+		}
+	}
 	class Login extends JPanel{
 		JLabel id = new JLabel("id : ");
 		JLabel password = new JLabel("password : ");
@@ -816,26 +1236,35 @@ public class MainFrame extends JFrame{
 		JPasswordField passwordt = new JPasswordField(10);
 		JButton ok = new JButton("확인");
 		JButton cancel = new JButton("취소");
-		Font butfont = new Font("맑은 고딕", Font.BOLD, 10);
+		Font butfont = new Font("맑은 고딕", Font.BOLD, 30);
+		JButton back = new JButton("이전");
 		public Login() {
-			id.setBounds(20,70,100,20);
-			idt.setBounds(120,70,100,20);
-			password.setBounds(20,120,100,20);
-			passwordt.setBounds(120,120,100,20);
+			id.setBounds(200,100,100,30);
+			id.setFont(butfont);
 			
-			ok.setBounds(140,200,60,20);
+			idt.setBounds(400,100,200,30);
+			
+			password.setBounds(200,200,170,30);
+			password.setFont(butfont);
+			
+			passwordt.setBounds(400,200,200,30);
+			
+			back.setBounds(600,450,80,40); 
+			back.setFont(font);
+			back.setBackground(button_c);		
+			
+			ok.setBounds(200,320,100,40);
 			ok.setFont(butfont);
 			ok.setBackground(back_c);
 			ok.setForeground(button_c);
 			
-			cancel.setBounds(210,200,60,20);
+			cancel.setBounds(400,320,100,40);
 			cancel.setFont(butfont);
 			cancel.setBackground(back_c);
 			cancel.setForeground(button_c);
 			
-			this.setBackground(button_c);
-			this.setSize(300, 250);
-			this.setLocation(550, 250);	
+			this.setSize(700, 500);
+			this.setLocation(300, 100);	
 			this.setLayout(null);
 			this.add(id);
 			this.add(idt);
@@ -843,15 +1272,17 @@ public class MainFrame extends JFrame{
 			this.add(passwordt);
 			this.add(ok);
 			this.add(cancel);
+			this.add(back);
 			
 			ok.addActionListener(new ActionListener(){
 				@Override
 				public void actionPerformed(ActionEvent e) {
-//					if (idt.getText().equals("admin") && passwordt.getText().equals("admin*")) {
+//					if (idt.getText().equals("test") && passwordt.getText().equals("1234")) {
 						AdminPanel adminp = new AdminPanel();
 						MainFrame.this.add(adminp);
 						adminp.updateUI();
 						setVisible(false);
+						back.setVisible(false);
 //					}
 //					else {
 //						JOptionPane.showMessageDialog(null, "로그인 실패", "ERROR", JOptionPane.ERROR_MESSAGE );
@@ -859,6 +1290,15 @@ public class MainFrame extends JFrame{
 				}
 			});
 			
+			back.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
+			});		
 		}
 	}
 	public static void main(String [] args) {
