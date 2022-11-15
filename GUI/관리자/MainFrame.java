@@ -8,7 +8,7 @@ import java.util.*;
 
 public class MainFrame extends JFrame{
 	Color back_c = new Color(0x0E1D35);
-	Color button_c = new Color(0xDDDEE5);
+	Color button_c = new Color(0xDDDEE5);//0xFFEFD6
 	Font font = new Font("맑은 고딕", Font.BOLD, 20);
 	Font font_in = new Font("맑은 고딕", Font.BOLD, 15);
 	Font button_font = new Font("맑은 고딕", Font.BOLD, 40);
@@ -426,7 +426,7 @@ public class MainFrame extends JFrame{
 		Font font = new Font("맑은 고딕", Font.BOLD, 20); 
 		String Hlist[] =  {"2시간  4000원", "4시간  7000원",
 		    	"6시간  10000원","8시간  13000원","10시간  15000원","30시간  50000원",
-		    	"50시간  80000원","100시간  15000원","150시간  21000원","200시간  26000원"};
+		    	"50시간  80000원","100시간  150000원","150시간  210000원","200시간  260000원"};
 		public sc_Buypass(){
 			setTitle("이용권 구매 창");
 			setSize(1000,780);
@@ -470,7 +470,7 @@ public class MainFrame extends JFrame{
 		    	String text = Hlist[i];
 		    	JButton btn = new JButton(text);
 		    	btn.setLocation(580,100+((i-5)*110));
-		    	btn.setSize(200,100);
+		    	btn.setSize(210,100);
 		    	btn.setForeground(Color.black);
 				btn.setBackground(button_c);
 				btn.setFont(font);
@@ -821,15 +821,13 @@ public class MainFrame extends JFrame{
 		}
 	}
 	class AdminPanel extends JPanel{
-		JButton back = new JButton("이전");
+		seat_color sc = new seat_color(); //좌석으로 보기
+		seat_main sg = new seat_main(); //그래프로 보기
 		JRadioButton seatcolor = new JRadioButton("좌석으로 보기");
 		JRadioButton seatgraph = new JRadioButton("그래프로 보기");
 		ButtonGroup group = new ButtonGroup();
-		seat_color sc = new seat_color(); //좌석으로 보기
-		seat_graph sg = new seat_graph(); //그래프로 보기
-		
-		
-		public AdminPanel() {
+		JButton back = new JButton("이전");
+		public AdminPanel() {	
 			group.add(seatcolor);
 			group.add(seatgraph);
 			
@@ -843,8 +841,7 @@ public class MainFrame extends JFrame{
 					add(bar, BorderLayout.NORTH);
 					User u = new User();
 					add(u);
-					setVisible(true);
-					
+					setVisible(true);	
 				}
 			});
 			bar.SeatStatus.addActionListener(new ActionListener() {
@@ -854,7 +851,6 @@ public class MainFrame extends JFrame{
 					AdminPanel ap = new AdminPanel();
 					MainFrame.this.add(ap);
 					MainFrame.this.setVisible(true);
-					
 				}
 			});
 			this.add(bar, BorderLayout.NORTH);
@@ -862,29 +858,7 @@ public class MainFrame extends JFrame{
 			this.setLocation(90, 60);
 			this.setLayout(null);
 			
-			back.setBounds(950,550,80,40); 
-			back.setFont(font);
-			back.setBackground(button_c);
-			this.add(back);
-			
-			//좌석 현황 - 좌석으로 보기기
-			seatcolor.setBounds(900, 200, 150, 40);
-			seatcolor.setBackground(button_c);
-			seatcolor.setSelected(true);
-			this.add(seatcolor);
-			//좌석 현황 - 그래프로 보기기
-//			next.setBounds(700, 500, 30, 30);
-//			sg.add(next);
-			seatgraph.setBounds(900, 240, 150, 40);
-			seatgraph.setBackground(button_c);
-			this.add(seatgraph);
-			
-			this.add(sc);
-			this.add(sg);
-			sg.setVisible(false);
-			
-			seatcolor.addItemListener(new ItemListener() {
-				
+			seatcolor.addItemListener(new ItemListener() {			
 				public void itemStateChanged(ItemEvent e) {
 					if(e.getStateChange() == ItemEvent.SELECTED) {
 						sg.setVisible(false);
@@ -902,6 +876,26 @@ public class MainFrame extends JFrame{
 				}
 			});
 			
+			this.add(sc);
+			this.add(sg);
+			sg.setVisible(false);
+			
+			//좌석 현황 - 좌석으로 보기
+			seatcolor.setBounds(900, 200, 150, 40);
+			seatcolor.setBackground(button_c);
+			seatcolor.setSelected(true);
+			this.add(seatcolor);
+			//좌석 현황 - 그래프로 보기
+			seatgraph.setBounds(900, 240, 150, 40);
+			seatgraph.setBackground(button_c);
+			this.add(seatgraph);
+			
+			back.setBounds(950,550,80,40); 
+			back.setFont(font);
+			back.setBackground(back_c);
+			back.setForeground(button_c);
+			this.add(back);	
+		
 			back.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					MainFrame.this.setVisible(false);
@@ -911,7 +905,6 @@ public class MainFrame extends JFrame{
 					MainFrame.this.setVisible(true);
 				}
 			});
-			
 		}
 		
 	}
@@ -945,7 +938,7 @@ public class MainFrame extends JFrame{
 		Color [] color = new Color []{r,g,y};
 		
 		public seat_color() {
-			setLocation(10, 50);
+			setLocation(10,0);
 			setSize(850, 570);
 			this.setBackground(button_c);
 			JButton[] seat = new JButton[60];
@@ -1000,37 +993,59 @@ public class MainFrame extends JFrame{
 			for(int i=0;i<10;i++) {
 				seat[i+50].setLocation(770, 90+i*45);
 				this.add(seat[i+50]);
-			}
+			}		
 		}
 	}
-	class seat_graph extends JPanel{
-		Font font = new Font("맑은 고딕", Font.BOLD, 11);
+	class underbar extends JPanel{
 		ImageIcon nexticon= new ImageIcon("./image/next.png");
 		ImageIcon previcon= new ImageIcon("./image/prev.png");
 		JButton next = new JButton(nexticon);
 		JButton prev = new JButton(previcon);
-		public seat_graph() {
+		
+		public underbar() {
 			setLayout(null);
-			setLocation(10, 50);
-			setSize(850, 570);
-			this.setBackground(button_c);
-			next.setBounds(700, 500, 30, 30);
-			prev.setBounds(650, 500, 30, 30);
+			setBackground(back_c);
+			setSize(850, 50);
+			setLocation(0,480);
+			next.setBounds(700, 10, 30, 30);
+			prev.setBounds(650, 10, 30, 30);
 			
-			add(next);
 			add(prev);
-			
+			add(next);
 		}
-		public void paint(Graphics g){
-			this.setBackground(button_c);
-			super.paintComponent(g);
+	}
+	class seat_main extends JPanel{
+		public seat_main() {
+			setSize(850, 570);
+			setLocation(10,50);
+			setBackground(button_c);
+			setLayout(null);
+			
+			add(new seat_graph());
+			add(new underbar());
+		}
+	}
+	class seat_graph extends JPanel{
+		Font font = new Font("맑은 고딕", Font.BOLD, 11);
+		int [] score = new int[60];
+		int randomIndex;
+		Random random = new Random();
+		public seat_graph() {
+			setLocation(0, 0);
+			setSize(850, 480);
+		}
+		public void paint(Graphics g){	
+			for(int i = 0 ;i<60;i++) {
+				randomIndex = random.nextInt(100);
+				score[i] = randomIndex;
+			}
 			g.clearRect(0,0,getWidth(),getHeight());
 			
 			Stroke line = new BasicStroke(3);
 			Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                     0, new float[]{9}, 0);
 			Graphics2D g2 = (Graphics2D) g.create();
-			
+			g.setColor(Color.blue);
 			g2.setStroke(line);
 			g2.drawLine(100,50,100,450);
 			g2.drawLine(100,450,750,450);
@@ -1040,24 +1055,14 @@ public class MainFrame extends JFrame{
 			
 			for(int i = 0;i<15;i++) {
 				g2.drawString("좌석"+i, i*43+100,470);
+				g.setColor(Color.blue);
+				g.fillRect(i*43+120, 450-score[i]*4, 10, score[i]*4);
 			}
 			g2.setStroke(dashed);
 	        for(int i =1;i<11;i++) {
 	        	g2.drawLine(100,450-i*40,750,450-i*40);
 	        	g2.drawString(""+i*10, 60, 450-i*40);
-	        }
-	        
-	        
-//	        for(int cnt = 1 ;cnt<11;cnt++)
-//	        {
-//	            g.drawString(cnt *10 +"",25,255-20*cnt);
-//	            g.drawLine(50, 250-20*cnt, 350,250-20*cnt);
-//	        }
-//	        g.drawLine(50,20,50,250);
-//	        g.drawString("Java",100,270);
-//	        g.drawString("Python",200,270);
-//	        g.drawString("C#",300,270);
-//	        g.setColor(Color.BLUE);
+	        }	   
 		}
 	}
 	
@@ -1081,6 +1086,7 @@ public class MainFrame extends JFrame{
 		JTextField mem_phoneT = new JTextField();
 		JTextArea mem_adrT = new JTextArea();
 		
+		JButton back = new JButton("이전");
 		/*JRadioButton mem_rb1 = new JRadioButton("남자");
 		JRadioButton mem_rb2 = new JRadioButton("여자");
 		ButtonGroup mem_group = new ButtonGroup();
@@ -1119,8 +1125,11 @@ public class MainFrame extends JFrame{
 			});
 			
 			mem_delBtn.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 삭제버튼
-			mem_delBtn.setLocation(860,560);
-			mem_delBtn.setSize(100,40);
+			mem_delBtn.setLocation(660,550);
+			mem_delBtn.setSize(80,40);
+			mem_delBtn.setFont(font);
+			mem_delBtn.setBackground(back_c);
+			mem_delBtn.setForeground(button_c);
 			mem_delBtn.addActionListener(new ActionListener() { 
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -1136,8 +1145,11 @@ public class MainFrame extends JFrame{
 			this.add(mem_delBtn);
 			
 			mem_editBtn.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 수정 버튼
-			mem_editBtn.setLocation(970,560);
-			mem_editBtn.setSize(100,40);
+			mem_editBtn.setLocation(770,550);
+			mem_editBtn.setSize(80,40);
+			mem_editBtn.setFont(font);
+			mem_editBtn.setBackground(back_c);
+			mem_editBtn.setForeground(button_c);
 			this.add(mem_editBtn);
 			mem_editBtn.addActionListener(new ActionListener() {  // 수정버튼 일단 string 으로 구현함
 				public void actionPerformed(ActionEvent e) {
@@ -1226,6 +1238,21 @@ public class MainFrame extends JFrame{
 			mem_time.setSize(100,25);
 			this.add(mem_time);
 			
+			back.setBounds(950,550,80,40); 
+			back.setFont(font);
+			back.setBackground(back_c);
+			back.setForeground(button_c);
+			this.add(back);	
+		
+			back.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
+			});
 			setVisible(true);
 		}
 	}
