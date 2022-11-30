@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.*;
+import java.sql.*;
 
 public class MainFrame extends JFrame{
 	Color back_c = new Color(0x0E1D35);
@@ -12,6 +13,9 @@ public class MainFrame extends JFrame{
 	Font font = new Font("맑은 고딕", Font.BOLD, 20);
 	Font font_in = new Font("맑은 고딕", Font.BOLD, 15);
 	Font button_font = new Font("맑은 고딕", Font.BOLD, 40);
+	static String url = "jdbc:mysql://cjh00.duckdns.org:3307/studycafe";
+	static String mysql_user = "root";
+	static String mysql_password = "0939";
 	
 	public MainFrame(){
 		setTitle("스터디 카페");		
@@ -51,7 +55,7 @@ public class MainFrame extends JFrame{
 					MainFrame.this.setVisible(false);
 					MainFrame.this.add(adminp);
 					MainFrame.this.setVisible(true);				
-					}
+				}
 			});
 			
 			
@@ -270,6 +274,41 @@ public class MainFrame extends JFrame{
 										"가입 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
 								
 								if(result_j == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
+									
+									boolean gender;
+									
+									if(jv.man_j.isSelected()) //성별이 남자일 경우 false로 저장
+										gender = false;
+									else
+										gender = true;
+									
+									try {
+										// MySQL DB용 드라이로드
+										Class.forName("com.mysql.cj.jdbc.Driver");
+										Connection conn =
+										DriverManager.getConnection(url, mysql_user, mysql_password);
+										String sql = "INSERT INTO MEMBER VALUES" + 
+												"('"+ jv.Natf_j.getText() + "', " + jv.Agef_j.getText() + ", " + gender + ", '" + jv.Phtf_j.getText() + "', null, '"+ jv.ADtf_j.getText() +
+												"', '" + jv.IDtf_j.getText() + "', '" + jv.PStf_j.getText() + "')";
+										System.out.println(sql);
+										Statement stmt = conn.createStatement();
+										stmt.execute(sql);
+										
+										if(conn!=null)    //db 연결해제
+											conn.close();
+										if(stmt!=null)
+											stmt.close();
+									}
+									catch(ClassNotFoundException error) {
+										JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+										return;
+									}
+									catch(SQLException error) {
+										JOptionPane.showMessageDialog(null, "DB접속오류");
+										return;
+									}
+					
+									
 									JOptionPane.showMessageDialog(null, "회원가입 되었습니다.", "스터디 카페", JOptionPane.INFORMATION_MESSAGE);
 									jv.setVisible(false);
 									mb.setVisible(true); // 구매 화면 보이기
@@ -476,28 +515,24 @@ public class MainFrame extends JFrame{
 				btn.setFont(font);
 				btn.addActionListener(bL);
 		    	add(btn);
-		    }
-			
-		    setVisible(true);
-			
-		}
-		class buyListener implements ActionListener{
-			public void actionPerformed(ActionEvent e) {
-				int result = JOptionPane.showConfirmDialog(null,
-						"구매하시겠습니까?","이용권 구매",JOptionPane.YES_NO_OPTION);
-				if(result == JOptionPane.YES_OPTION) {
-					JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
-					MainFrame.this.setVisible(false);
-					MainFrame.this.getContentPane().removeAll();
-					seat s = new seat();
-					MainFrame.this.add(s);
-					MainFrame.this.setVisible(true);
-				}
-					
-			}
+		    }		
+		    setVisible(true);			
+		}	
+	}
+	class buyListener implements ActionListener{ //이용권 버튼 클릭시 이벤트(다른 클래스에서도 사용가능)
+		public void actionPerformed(ActionEvent e) {
+			int result = JOptionPane.showConfirmDialog(null,
+					"구매하시겠습니까?","이용권 구매",JOptionPane.YES_NO_OPTION);
+			if(result == JOptionPane.YES_OPTION) {
+				JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
+				MainFrame.this.setVisible(false);
+				MainFrame.this.getContentPane().removeAll();
+				seat s = new seat();
+				MainFrame.this.add(s);
+				MainFrame.this.setVisible(true);
+			}	
 		}
 	}
-	
 	class join_view extends JPanel{		// 회원 가입 화면
 		private JLabel title_j = new JLabel("회원가입");
 		private JLabel Name_j = new JLabel("이     름");
@@ -511,58 +546,95 @@ public class MainFrame extends JFrame{
 		private JLabel Ph_j = new JLabel("전화번호");
 		private JTextField Phtf_j = new JTextField(50);	// 전화번호 입력 받는 텍스트 필드
 		private JLabel AD_j = new JLabel("주     소");
-		private JTextField ADtf_j = new JTextField();	// 주소 입력 받는 텍스트 필드
+		private JTextArea ADtf_j = new JTextArea();	// 주소 입력 받는 텍스트 필드
+		private JScrollPane ADs_j = new JScrollPane(ADtf_j);
 		private JButton join_j = new JButton("가입");
 		private JButton Back_j = new JButton("이전");		// 뒤로 가는 버튼
+		private JLabel Gender_j = new JLabel("성     별");
+		private JRadioButton man_j = new JRadioButton("남");
+		private JRadioButton woman_j = new JRadioButton("여");
+		private ButtonGroup genderg_j = new ButtonGroup();
+		private JLabel Age_j = new JLabel("나     이");
+		private JTextField Agef_j = new JTextField(3);
 		public join_view() {
 			this.setSize(1100,600);
 			this.setLocation(90,90);
 			setBackground(Color.WHITE);
 			setLayout(null);
 			
-			title_j.setBounds(320,60,200,40);
+			title_j.setBounds(150,60,200,40);
 			title_j.setFont(button_font);
 			add(title_j);
 			
-			Name_j.setBounds(341,145,80,40);
+			Name_j.setBounds(131,145,80,40);
 			Name_j.setFont(font);
 			add(Name_j);
+				
+			Gender_j.setBounds(600, 145, 100, 40);
+			Gender_j.setFont(font);
+			add(Gender_j);
 			
-			Natf_j.setBounds(450,145,320,40);
+			genderg_j.add(man_j);   //성별 라디오 버튼 그룹
+			genderg_j.add(woman_j);
+			
+			man_j.setBounds(710, 145, 50, 40);
+			man_j.setFont(font_in);
+			man_j.setBackground(Color.white);
+			add(man_j);	
+
+			woman_j.setBounds(770, 145, 50, 40);
+			woman_j.setFont(font_in);
+			woman_j.setBackground(Color.white);
+			add(woman_j);
+			
+			Age_j.setBounds(131, 390, 80, 40);
+			Age_j.setFont(font);
+			add(Age_j);
+			
+			Agef_j.setBounds(240, 390, 320, 40);
+			Agef_j.setFont(font_in);
+			add(Agef_j);
+			
+			Natf_j.setBounds(240,145,320,40);
 			Natf_j.setFont(font_in);
 			add(Natf_j);
 			
-			IDl_j.setBounds(342,210,90,40);
+			IDl_j.setBounds(132,210,90,40);
 			IDl_j.setFont(font);
 			add(IDl_j);
 			
-			IDtf_j.setBounds(450,210,320,40);
+			IDtf_j.setBounds(240,210,320,40);
 			IDtf_j.setFont(font_in);
 			add(IDtf_j);
 			
-			PSl_j.setBounds(340,270,100,40);
+			PSl_j.setBounds(130,270,100,40);
 			PSl_j.setFont(font);
 			add(PSl_j);
 			
-			PStf_j.setBounds(450,270,320,40);
+			PStf_j.setBounds(240,270,320,40);
 			PStf_j.setFont(font_in);
 			add(PStf_j);
 			
-			Ph_j.setBounds(340,330,100,40);
+			Ph_j.setBounds(130,330,100,40);
 			Ph_j.setFont(font);
 			add(Ph_j);
 			
-			Phtf_j.setBounds(450,330,320,40);
+			Phtf_j.setBounds(240,330,320,40);
 			Phtf_j.setFont(font_in);
 			add(Phtf_j);
 			
-			AD_j.setBounds(341,390,80,40);
+			AD_j.setBounds(600,210,80,40);
 			AD_j.setFont(font);
 			add(AD_j);
 			
-			ADtf_j.setBounds(450,390,320,40);
 			ADtf_j.setFont(font_in);
-			add(ADtf_j);
+			ADtf_j.setLineWrap(true);
+			
+			ADs_j.setBounds(700,210, 320, 120);
+			ADs_j.setViewportView(ADtf_j);
+			ADs_j.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			add(ADs_j);
+			ADs_j.setVisible(true);
 			
 			join_j.setBounds(690,460,80,40);
 			join_j.setFont(font);
@@ -648,34 +720,42 @@ public class MainFrame extends JFrame{
 			title3_mb.setFont(font);
 			add(title3_mb);
 			
+			buyListener bL = new buyListener();
+			
 			bt1m.setBounds(80,200,200,60);
 			bt1m.setFont(font_in);
-			bt1m.setBackground(button_c);	
+			bt1m.setBackground(button_c);
+			bt1m.addActionListener(bL);
 			add(bt1m);
 			
 			bt2m.setBounds(300,200,200,60);
 			bt2m.setFont(font_in);
-			bt2m.setBackground(button_c);	
+			bt2m.setBackground(button_c);
+			bt2m.addActionListener(bL);
 			add(bt2m);
 			
 			bt3m.setBounds(80,315,200,60);
 			bt3m.setFont(font_in);
-			bt3m.setBackground(button_c);	
+			bt3m.setBackground(button_c);
+			bt3m.addActionListener(bL);
 			add(bt3m);
 			
 			bt4m.setBounds(300,315,200,60);
 			bt4m.setFont(font_in);
-			bt4m.setBackground(button_c);	
+			bt4m.setBackground(button_c);
+			bt4m.addActionListener(bL);
 			add(bt4m);
 			
 			bt5m.setBounds(80,430,200,60);
 			bt5m.setFont(font_in);
 			bt5m.setBackground(button_c);	
+			bt5m.addActionListener(bL);
 			add(bt5m);
 			
 			bt6m.setBounds(300,430,200,60);
 			bt6m.setFont(font_in);
-			bt6m.setBackground(button_c);	
+			bt6m.setBackground(button_c);
+			bt6m.addActionListener(bL);
 			add(bt6m);
 			
 			title4_mb.setBounds(777,140,100,40);
@@ -685,31 +765,37 @@ public class MainFrame extends JFrame{
 			bt7m.setBounds(600,200,200,60);
 			bt7m.setFont(font_in);
 			bt7m.setBackground(button_c);	
+			bt7m.addActionListener(bL);
 			add(bt7m);
 			
 			bt8m.setBounds(820,200,200,60);
 			bt8m.setFont(font_in);
 			bt8m.setBackground(button_c);	
+			bt8m.addActionListener(bL);
 			add(bt8m);
 			
 			bt9m.setBounds(600,315,200,60);
 			bt9m.setFont(font_in);
-			bt9m.setBackground(button_c);	
+			bt9m.setBackground(button_c);
+			bt9m.addActionListener(bL);
 			add(bt9m);
 			
 			bt10m.setBounds(820,315,200,60);
 			bt10m.setFont(font_in);
 			bt10m.setBackground(button_c);	
+			bt10m.addActionListener(bL);
 			add(bt10m);
 			
 			bt11m.setBounds(600,430,200,60);
 			bt11m.setFont(font_in);
 			bt11m.setBackground(button_c);	
+			bt11m.addActionListener(bL);
 			add(bt11m);
 			
 			bt12m.setBounds(820,430,200,60);
 			bt12m.setFont(font_in);
 			bt12m.setBackground(button_c);	
+			bt12m.addActionListener(bL);
 			add(bt12m);
 			
 			Back_mb.setBounds(950,520,80,40); 
@@ -750,34 +836,42 @@ public class MainFrame extends JFrame{
 			title2_nb.setFont(font);
 			add(title2_nb);
 			
+			buyListener bL = new buyListener(); //회원 구매 파트에서 가져옴
+			
 			bt1n.setBounds(80,200,200,60);
 			bt1n.setFont(font_in);
-			bt1n.setBackground(button_c);	
+			bt1n.setBackground(button_c);
+			bt1n.addActionListener(bL);
 			add(bt1n);
 			
 			bt2n.setBounds(300,200,200,60);
 			bt2n.setFont(font_in);
 			bt2n.setBackground(button_c);	
+			bt2n.addActionListener(bL);
 			add(bt2n);
 			
 			bt3n.setBounds(80,315,200,60);
 			bt3n.setFont(font_in);
 			bt3n.setBackground(button_c);	
+			bt3n.addActionListener(bL);
 			add(bt3n);
 			
 			bt4n.setBounds(300,315,200,60);
 			bt4n.setFont(font_in);
 			bt4n.setBackground(button_c);	
+			bt4n.addActionListener(bL);
 			add(bt4n);
 			
 			bt5n.setBounds(80,430,200,60);
 			bt5n.setFont(font_in);
 			bt5n.setBackground(button_c);	
+			bt5n.addActionListener(bL);
 			add(bt5n);
 			
 			bt6n.setBounds(300,430,200,60);
 			bt6n.setFont(font_in);
-			bt6n.setBackground(button_c);	
+			bt6n.setBackground(button_c);
+			bt6n.addActionListener(bL);
 			add(bt6n);
 			
 			title3_nb.setBounds(777,140,100,40);
@@ -787,31 +881,37 @@ public class MainFrame extends JFrame{
 			bt7n.setBounds(600,200,200,60);
 			bt7n.setFont(font_in);
 			bt7n.setBackground(button_c);	
+			bt7n.addActionListener(bL);
 			add(bt7n);
 			
 			bt8n.setBounds(820,200,200,60);
 			bt8n.setFont(font_in);
-			bt8n.setBackground(button_c);	
+			bt8n.setBackground(button_c);
+			bt8n.addActionListener(bL);
 			add(bt8n);
 			
 			bt9n.setBounds(600,315,200,60);
 			bt9n.setFont(font_in);
 			bt9n.setBackground(button_c);	
+			bt9n.addActionListener(bL);
 			add(bt9n);
 			
 			bt10n.setBounds(820,315,200,60);
 			bt10n.setFont(font_in);
 			bt10n.setBackground(button_c);	
+			bt10n.addActionListener(bL);
 			add(bt10n);
 			
 			bt11n.setBounds(600,430,200,60);
 			bt11n.setFont(font_in);
 			bt11n.setBackground(button_c);	
+			bt11n.addActionListener(bL);
 			add(bt11n);
 			
 			bt12n.setBounds(820,430,200,60);
 			bt12n.setFont(font_in);
 			bt12n.setBackground(button_c);	
+			bt12n.addActionListener(bL);
 			add(bt12n);
 			
 			Back_nb.setBounds(950,520,80,40); 
@@ -1054,7 +1154,7 @@ public class MainFrame extends JFrame{
 			g2.drawString("(%)", 80, 30);
 			
 			for(int i = 0;i<15;i++) {
-				g2.drawString("좌석"+i, i*43+100,470);
+				g2.drawString("좌석"+(i+1), i*43+100,470);
 				g.setColor(Color.blue);
 				g.fillRect(i*43+120, 450-score[i]*4, 10, score[i]*4);
 			}
