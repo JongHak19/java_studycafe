@@ -470,7 +470,7 @@ public class MainFrame extends JFrame{
 										"가입 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
 								
 								if(result_j == JOptionPane.YES_OPTION) { // 회원 가입 하는 경우
-									
+									mpn = jv.IDtf_j.getText();
 									boolean gender;
 									
 									if(jv.man_j.isSelected()) //성별이 남자일 경우 false로 저장
@@ -1489,6 +1489,18 @@ public class MainFrame extends JFrame{
 					MainFrame.this.setVisible(true);
 				}
 			});
+			
+			bar.sales.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					setVisible(false);
+					removeAll();
+					add(bar, BorderLayout.NORTH);
+					sales s = new sales();
+					add(s);
+					setVisible(true);
+				}
+			});
+			
 			this.add(bar, BorderLayout.NORTH);
 			setBackground(button_c);
 			this.setLocation(90, 60);
@@ -2143,6 +2155,75 @@ public class MainFrame extends JFrame{
 			setVisible(true);
 		}
 	}
+	
+	public class sales extends JPanel{
+		Font font = new Font("맑은 고딕", Font.BOLD, 11);
+		int [] sale = new int [12]; // 월 매출 입력받을 배열 (최대 1000만원)
+		
+		public sales() {
+			setTitle("매출 그래프");
+			setLocation(0, 0);
+			setSize(900, 550);
+			setLayout(new BorderLayout());
+		    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		    setVisible(true);
+		    try { // 선택한 좌석의 이용여부 저장
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT * FROM sales"; // 선택한 좌석의 사용여부
+				
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);
+				int i = 0;
+				String sales = null;
+				while(rs.next()) {
+					sales = rs.getString("price");
+					sales = sales.substring(0,sales.length()-3);
+					sale[i]=Integer.parseInt(sales);
+					System.out.println(sale[i]);
+					i++;
+					
+				}	
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+			}
+		}
+		public void paint(Graphics g) {
+			g.clearRect(0, 0, getWidth(), getHeight());
+			
+			g.drawLine(100,50,100,450); // y축
+			g.drawLine(100,450,750,450); // x축
+			g.drawString("0", 60, 450);
+			g.drawString("10000", 40, 60);
+			g.drawString("단위 : 1000원", 750, 300);
+			for(int i=1; i<13; i++) {
+				g.drawString(i+"월", 100+i*50, 470); // x축의 월 표시
+			}
+			
+			Graphics2D g2 = (Graphics2D)g.create();
+			g2.setStroke(new BasicStroke(5));		
+			
+			g2.setColor(Color.green);
+			for(int i=1; i<12; i++) {
+				g2.drawLine(100+i*50, 450-(sale[i-1]/25), 150+i*50, 450-(sale[i]/25));
+			}
+			g2.setColor(Color.black);
+			for(int j=1; j<13; j++) {
+				g2.drawString(""+sale[j-1], 95+j*50, 450-(sale[j-1]/25));
+			}
+		}
+	}
+	
 	class Login extends JPanel{
 		JLabel id = new JLabel("id : ");
 		JLabel password = new JLabel("password : ");
