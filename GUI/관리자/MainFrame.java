@@ -6,6 +6,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.*;
 import java.sql.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 public class MainFrame extends JFrame{
 	Color back_c = new Color(0x0E1D35);
@@ -16,6 +18,14 @@ public class MainFrame extends JFrame{
 	static String url = "jdbc:mysql://cjh00.duckdns.org:3307/studycafe";
 	static String mysql_user = "root";
 	static String mysql_password = "0939";
+	static int selected_seat = 0; // 선택한 좌석의 번호
+	static int usestatus = 0; // 선택한 좌석의 이용여부
+	static int new_selected_seat = 0; // 새로 선택한 좌석의 번호
+	static int new_usestatus = 0; // 새로 선택한 좌석의 이용여부
+	static String npn = null;
+	static String mpn = null;
+	static String seat_id = null;
+	// 좌석 이용시 (회원,비회원이 이용권 결제 후 이용시 , 회원이 남은시간으로 이용시 ) buytime에 SELECT now(); 저장해야함
 	
 	public MainFrame(){
 		setTitle("스터디 카페");		
@@ -58,13 +68,40 @@ public class MainFrame extends JFrame{
 				}
 			});
 			
-			
-			for(int i=0;i<60;i++) {
-				seat[i] = new JButton(Integer.toString(i+1));
-				seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
-				seat[i].setSize(80,50);
-				seat[i].setBackground(button_c);
-
+			try { // 선택한 좌석의 이용여부 저장
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT use_Status FROM seat"; // 선택한 좌석의 사용여부
+				
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);	
+				int i = 0;
+				while(rs.next()) {
+					seat[i] = new JButton(Integer.toString(i+1));
+					seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
+					seat[i].setSize(80,50);
+					seat[i].setBackground(button_c);
+					if(rs.getInt(1) == 1) {
+						seat[i].setBackground(new Color(0xaaacbe));
+					}
+					i++;
+				}
+				
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+				
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+				return;
 			}
 			
 			seat[0].setLocation(125,100);
@@ -198,9 +235,167 @@ public class MainFrame extends JFrame{
 				seat[i].addActionListener(new ActionListener(){
 					@Override
 					public void actionPerformed(ActionEvent e) {	
-						// 좌석 선택 후 회원 비회원 선택 화면
+						selected_seat = Integer.parseInt(e.getActionCommand()); // 선택한 좌석 번호 저장
+						try { // 선택한 좌석의 이용여부 저장
+							// MySQL DB용 드라이로드
+							Class.forName("com.mysql.cj.jdbc.Driver");
+							Connection conn =
+							DriverManager.getConnection(url, mysql_user, mysql_password);
+							String sql = "SELECT use_Status FROM seat WHERE (seat_number = '"
+									+selected_seat + "')"; // 선택한 좌석의 사용여부
+							
+							Statement stmt = conn.createStatement();
+							ResultSet result2 = stmt.executeQuery(sql);	
+							while(result2.next()) {
+								usestatus = result2.getInt(1);
+							}	
+							if(conn!=null)    //db 연결해제
+								conn.close();
+							if(stmt!=null)
+								stmt.close();
+						}
+						catch(ClassNotFoundException error) {
+							JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+							return;
+						}
+						catch(SQLException error) {
+							JOptionPane.showMessageDialog(null, "DB접속오류");
+							return;
+						}
+						
+						if(usestatus == 1) { // 이용중인 좌석선택 시
+							String password = null;
+							boolean change = false;
+							JPasswordField pf = new JPasswordField();
+							int okCxl = JOptionPane.showConfirmDialog(null, pf, "Enter Password", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+							if (okCxl == JOptionPane.OK_OPTION) {
+							  password = new String(pf.getPassword());
+							}
+							
+							try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+								Class.forName("com.mysql.cj.jdbc.Driver");
+								Connection conn =
+								DriverManager.getConnection(url, mysql_user, mysql_password);
+								String sql = "select ID from seat where seat_number = '" + selected_seat + "'"; //회원 자리이동, 퇴실
+								Statement stmt = conn.createStatement();
+								ResultSet rs = stmt.executeQuery(sql);
+								if(rs.next()) {
+									seat_id = rs.getString(1);	
+								}
+								if(conn!=null)
+									conn.close();
+								if(stmt!=null)
+									stmt.close();			
+							}catch(ClassNotFoundException error) {
+								JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+								return;
+							}catch(SQLException error) {
+								JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+								return;
+							}
+							
+							try {
+								Class.forName("com.mysql.cj.jdbc.Driver");
+								Connection con = DriverManager.getConnection(url, mysql_user, mysql_password);
+								String sql2 = "select password from member where ID = '" + seat_id + "'"; // 회원 자리이동, 퇴실
+								Statement stmt2 = con.createStatement();
+								ResultSet rs2 = stmt2.executeQuery(sql2);
+								if (rs2.next()) {
+									if (rs2.getString(1).equals(password)) {
+										change = true;
+									}
+									else {
+										JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.");
+									}
+								}
+								else {
+									try {
+										Class.forName("com.mysql.cj.jdbc.Driver");
+										Connection conn = DriverManager.getConnection(url, mysql_user, mysql_password);
+										String sql = "select number from nonmember where number = '" + seat_id + "'"; // 비회원 자리이동, 퇴실
+										Statement stmt = con.createStatement();
+										ResultSet rs = stmt2.executeQuery(sql);
+										if (rs.next()) {
+											if (rs.getString(1).equals(password)) {
+												change = true;
+											}
+											else {
+												JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.");
+											}
+										}
+
+										if (conn != null)
+											conn.close();
+										if (stmt != null)
+											stmt.close();
+									} catch (ClassNotFoundException error) {
+										JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+										return;
+									}catch (SQLException error) {
+										JOptionPane.showMessageDialog(null, "DB접속오류22" + error.getMessage());
+										return;
+									}
+								}
+								if (con != null)
+									con.close();
+								if (stmt2 != null)
+									stmt2.close();
+							} catch (ClassNotFoundException error) {
+								JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+								return;
+							}catch (SQLException error) {
+								JOptionPane.showMessageDialog(null, "DB접속오류22" + error.getMessage());
+								return;
+							}
+							////////////////////////////////////////////////////////////////////////
+							if(change) {
+								int result_n = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
+										"좌석이동을 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
+								if(result_n == JOptionPane.YES_OPTION) {
+									try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+										Class.forName("com.mysql.cj.jdbc.Driver");
+										Connection conn =
+										DriverManager.getConnection(url, mysql_user, mysql_password);
+										String sql = "UPDATE seat SET change_count = change_count +1,use_count = use_count+1, use_time = "
+												+ "addtime(use_time, timediff(now(),buytime)), " // 현재시간과 결제시 시간 계산 후 시간 더하기
+												+ "use_Status = 0, buytime = null, ID = null WHERE (seat_number = '" // buytime 초기화
+												+selected_seat + "')"; // 현재 좌석의 자리이동횟수, 여부, 사용시간 변경
+										System.out.println(sql);
+										Statement stmt = conn.createStatement();
+										stmt.executeUpdate(sql);
+										if(conn!=null)
+											conn.close();
+										if(stmt!=null)
+											stmt.close();
+									}
+									catch(ClassNotFoundException error) {
+										JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+										return;
+									}
+									
+									catch(SQLException error) {
+										JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+										return;
+									}
+									JOptionPane.showMessageDialog(null, " 이동할 좌석을 선택해주세요.","Message",JOptionPane.INFORMATION_MESSAGE);
+									MainFrame.this.setVisible(false);
+									MainFrame.this.getContentPane().removeAll();
+									new_seat s1 = new new_seat();
+									MainFrame.this.add(s1);
+									MainFrame.this.setVisible(true);		
+								}
+								else {
+									int answer = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
+											"퇴실 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
+								}
+							}
+						}
+							
+						else { // 좌석 선택 후 회원 비회원 선택 화면
 						MainFrame.this.getContentPane().removeAll();
 						MainFrame.this.setVisible(false);
+						
 						main_panel mp = new main_panel();	// 회원 비회원 선택 화면 패널
 						MainFrame.this.add(mp);
 						member_view mv = new member_view();	// 회원 선택시 화면 패널
@@ -210,9 +405,10 @@ public class MainFrame extends JFrame{
 						mp.member.addActionListener(new ActionListener() {	// 회원 버튼을 눌렀을 때
 							public void actionPerformed(ActionEvent e) {
 								mp.setVisible(false);
-								mv.setVisible(true); // c.add(mv);	
+								
+								mv.setVisible(true); // c.add(mv);								
 							}
-						});
+						});	
 						
 						nonmember_view nmv = new nonmember_view();	// 비회원 선택시 화면 패널
 						MainFrame.this.add(nmv);
@@ -288,16 +484,15 @@ public class MainFrame extends JFrame{
 										Connection conn =
 										DriverManager.getConnection(url, mysql_user, mysql_password);
 										String sql = "INSERT INTO MEMBER VALUES" + 
-												"('"+ jv.Natf_j.getText() + "', " + jv.Agef_j.getText() + ", " + gender + ", '" + jv.Phtf_j.getText() + "', null, '"+ jv.ADtf_j.getText() +
+												"('"+ jv.Natf_j.getText() + "', " + jv.Agef_j.getText() + ", " + gender + ", '" + jv.Phtf_j.getText() + "', '0', '"+ jv.ADtf_j.getText() +
 												"', '" + jv.IDtf_j.getText() + "', '" + jv.PStf_j.getText() + "')";
-										System.out.println(sql);
-										Statement stmt = conn.createStatement();
-										stmt.execute(sql);
+										PreparedStatement ptmt = conn.prepareStatement(sql);
+										ptmt.executeUpdate();
 										
 										if(conn!=null)    //db 연결해제
 											conn.close();
-										if(stmt!=null)
-											stmt.close();
+										if(ptmt!=null)
+											ptmt.close();
 									}
 									catch(ClassNotFoundException error) {
 										JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
@@ -307,8 +502,7 @@ public class MainFrame extends JFrame{
 										JOptionPane.showMessageDialog(null, "DB접속오류");
 										return;
 									}
-					
-									
+							
 									JOptionPane.showMessageDialog(null, "회원가입 되었습니다.", "스터디 카페", JOptionPane.INFORMATION_MESSAGE);
 									jv.setVisible(false);
 									mb.setVisible(true); // 구매 화면 보이기
@@ -319,8 +513,11 @@ public class MainFrame extends JFrame{
 						// 회원 구매 화면
 						mb.Back_mb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
 							public void actionPerformed(ActionEvent e) {
-								mb.setVisible(false);
-								jv.setVisible(true);
+								MainFrame.this.setVisible(false);
+								MainFrame.this.getContentPane().removeAll();
+								seat s = new seat();
+								MainFrame.this.add(s);
+								MainFrame.this.setVisible(true);
 							}
 						});
 						
@@ -335,27 +532,26 @@ public class MainFrame extends JFrame{
 						nonmember_buy nmb = new nonmember_buy();	// 비회원 구매 패널
 						MainFrame.this.add(nmb);
 						nmb.setVisible(false);
-						nmv.join_n.addActionListener(new ActionListener() {	// 가입 버튼 눌렀을 때 
+						nmv.join_n.addActionListener(new ActionListener() {	// 확인 버튼 눌렀을 때 
 							public void actionPerformed(ActionEvent e) {
+								npn = nmv.Phtf_n.getText(); //비회원 전화번호 저장
 								nmv.setVisible(false);
 								nmb.setVisible(true); // 비회원 구매 화면 보이기
 							}
 						});
-						
 						// 비회원 구매 화면
 						nmb.Back_nb.addActionListener(new ActionListener() {	// 뒤로 가기 버튼 
 							public void actionPerformed(ActionEvent e) {
 								nmb.setVisible(false);
 								nmv.setVisible(true);
 							}
-						});
-						
+						});		
 						MainFrame.this.setVisible(true);
-					}
+					}				
+				}			
 				});
 			}
-		}
-		
+		}	
 	}
 	class main_panel extends JPanel {	// 회원 비회원 선택 화면
 		private JButton member = new JButton("회원"); // 회원 버튼
@@ -384,7 +580,252 @@ public class MainFrame extends JFrame{
 			add(Back_c);
 		}
 	}
-	
+	class new_seat extends JPanel{ // 좌석 이동시 뜨게 하는 좌석 선택 창
+		JButton[] new_seat = new JButton[60];
+		public new_seat() {
+			this.setBackground(back_c);
+			this.setLayout(null);
+			this.setSize(1280,700);
+			this.setLocation(-10,10);
+			
+			try { // 선택한 좌석의 이용여부 저장
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT use_Status FROM seat"; // 선택한 좌석의 사용여부
+				
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);	
+				int i = 0;
+				while(rs.next()) {
+					new_seat[i] = new JButton(Integer.toString(i+1));
+					new_seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
+					new_seat[i].setSize(80,50);
+					new_seat[i].setBackground(button_c);
+					if(rs.getInt(1) == 1) {
+						new_seat[i].setBackground(new Color(0xaaacbe));
+					}
+					i++;
+				}
+				
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+				
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+				return;
+			}
+			new_seat[0].setLocation(125,100);
+			this.add(new_seat[0]);
+			new_seat[1].setLocation(205,100);
+			this.add(new_seat[1]);
+			new_seat[2].setLocation(285,100);
+			this.add(new_seat[2]);
+			new_seat[3].setLocation(365,100);
+			this.add(new_seat[3]);
+			new_seat[4].setLocation(445,100);
+			this.add(new_seat[4]);
+			new_seat[5].setLocation(525,100);
+			this.add(new_seat[5]);
+			new_seat[6].setLocation(605,100);
+			this.add(new_seat[6]);
+			new_seat[7].setLocation(685,100);
+			this.add(new_seat[7]);
+			new_seat[8].setLocation(765,100);
+			this.add(new_seat[8]);
+			new_seat[9].setLocation(845,100);
+			this.add(new_seat[9]);
+
+			new_seat[10].setLocation(125,150);
+			this.add(new_seat[10]);
+			new_seat[11].setLocation(205,150);
+			this.add(new_seat[11]);
+			new_seat[12].setLocation(285,150);
+			this.add(new_seat[12]);
+			new_seat[13].setLocation(365,150);
+			this.add(new_seat[13]);
+			new_seat[14].setLocation(445,150);
+			this.add(new_seat[14]);
+			new_seat[15].setLocation(525,150);
+			this.add(new_seat[15]);
+			new_seat[16].setLocation(605,150);
+			this.add(new_seat[16]);
+			new_seat[17].setLocation(685,150);
+			this.add(new_seat[17]);
+			new_seat[18].setLocation(765,150);
+			this.add(new_seat[18]);
+			new_seat[19].setLocation(845,150);
+			this.add(new_seat[19]);
+
+			new_seat[20].setLocation(125,300);
+			this.add(new_seat[20]);
+			new_seat[21].setLocation(205,300);
+			this.add(new_seat[21]);
+			new_seat[22].setLocation(285,300);
+			this.add(new_seat[22]);
+			new_seat[23].setLocation(365,300);
+			this.add(new_seat[23]);
+			new_seat[24].setLocation(445,300);
+			this.add(new_seat[24]);
+			new_seat[25].setLocation(125,350);
+			this.add(new_seat[25]);
+			new_seat[26].setLocation(205,350);
+			this.add(new_seat[26]);
+			new_seat[27].setLocation(285,350);
+			this.add(new_seat[27]);
+			new_seat[28].setLocation(365,350);
+			this.add(new_seat[28]);
+			new_seat[29].setLocation(445,350);
+			this.add(new_seat[29]);
+
+			new_seat[30].setLocation(125,500);
+			this.add(new_seat[30]);
+			new_seat[31].setLocation(205,500);
+			this.add(new_seat[31]);
+			new_seat[32].setLocation(285,500);
+			this.add(new_seat[32]);
+			new_seat[33].setLocation(365,500);
+			this.add(new_seat[33]);
+			new_seat[34].setLocation(445,500);
+			this.add(new_seat[34]);
+			new_seat[35].setLocation(125,570);
+			this.add(new_seat[35]);
+			new_seat[36].setLocation(205,570);
+			this.add(new_seat[36]);
+			new_seat[37].setLocation(285,570);
+			this.add(new_seat[37]);
+			new_seat[38].setLocation(365,570);
+			this.add(new_seat[38]);
+			new_seat[39].setLocation(445,570);
+			this.add(new_seat[39]);
+
+			new_seat[40].setLocation(845,370);
+			this.add(new_seat[40]);
+			new_seat[41].setLocation(925,370);
+			this.add(new_seat[41]);
+			new_seat[42].setLocation(845,420);
+			this.add(new_seat[42]);
+			new_seat[43].setLocation(925,420);
+			this.add(new_seat[43]);
+			new_seat[44].setLocation(845,470);
+			this.add(new_seat[44]);
+			new_seat[45].setLocation(925,470);
+			this.add(new_seat[45]);
+			new_seat[46].setLocation(845,520);
+			this.add(new_seat[46]);
+			new_seat[47].setLocation(925,520);
+			this.add(new_seat[47]);
+			new_seat[48].setLocation(845,570);
+			this.add(new_seat[48]);
+			new_seat[49].setLocation(925,570);
+			this.add(new_seat[49]);
+
+			new_seat[50].setLocation(1075, 120);
+			this.add(new_seat[50]);
+			new_seat[51].setLocation(1075, 170);
+			this.add(new_seat[51]);
+			new_seat[52].setLocation(1075, 220);
+			this.add(new_seat[52]);
+			new_seat[53].setLocation(1075, 270);
+			this.add(new_seat[53]);
+			new_seat[54].setLocation(1075, 320);
+			this.add(new_seat[54]);
+			new_seat[55].setLocation(1075, 370);
+			this.add(new_seat[55]);
+			new_seat[56].setLocation(1075, 420);
+			this.add(new_seat[56]);
+			new_seat[57].setLocation(1075, 470);
+			this.add(new_seat[57]);
+			new_seat[58].setLocation(1075, 520);
+			this.add(new_seat[58]);
+			new_seat[59].setLocation(1075, 570);
+			this.add(new_seat[59]);
+			for(int i =0; i < 60; i++) {
+				new_seat[i].addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e) {
+						new_selected_seat = Integer.parseInt(e.getActionCommand()); // 선택한 좌석 번호 저장
+						try { // 선택한 좌석의 이용여부 저장
+							// MySQL DB용 드라이로드
+							Class.forName("com.mysql.cj.jdbc.Driver");
+							Connection conn =
+							DriverManager.getConnection(url, mysql_user, mysql_password);
+							String sql = "SELECT use_Status FROM seat WHERE (seat_number = '"
+									+new_selected_seat + "')"; // 새로 선택한 좌석의 사용여부
+							
+							Statement stmt = conn.createStatement();
+							ResultSet result2 = stmt.executeQuery(sql);	
+							while(result2.next()) {
+								new_usestatus = result2.getInt(1);
+							}
+							
+							if(conn!=null)    //db 연결해제
+								conn.close();
+							if(stmt!=null)
+								stmt.close();
+							
+						}
+						catch(ClassNotFoundException error) {
+							JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+							return;
+						}
+						catch(SQLException error) {
+							JOptionPane.showMessageDialog(null, "DB접속오류");
+							return;
+						}
+						if(new_usestatus == 1) { // 새로선택한 좌석의 사용여부가 true 면
+							JOptionPane.showMessageDialog(null, "사용중인 좌석입니다.");
+							return;
+						}
+						else {
+							LocalDateTime now = LocalDateTime.now();	 
+					        // 포맷팅
+					        String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+							try { 
+								// MySQL DB용 드라이로드
+								Class.forName("com.mysql.cj.jdbc.Driver");
+								Connection conn9 =
+										DriverManager.getConnection(url, mysql_user, mysql_password);
+								String sql = "UPDATE seat SET use_count = use_count + 1, "
+										+ "use_Status = 1, ID = '"+ seat_id +"',"
+												+ "buytime = '"+formatedNow+"' WHERE (seat_number = '" + new_selected_seat + "')"; 
+											// 새로 선택한 좌석의 이용횟수 , 이용 여부 변경
+					
+								Statement stmt9 = conn9.createStatement();	
+								stmt9.executeUpdate(sql);
+								if(conn9!=null)    //db 연결해제
+									conn9.close();
+								if(stmt9!=null)
+									stmt9.close();
+					
+							}
+							catch(ClassNotFoundException error) {
+								JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+								return;
+							}
+							catch(SQLException error) {
+								JOptionPane.showMessageDialog(null, "DB접속오류");
+								return;
+							}
+							JOptionPane.showMessageDialog(null, " 좌석이동이 완료되었습니다.","Message",JOptionPane.INFORMATION_MESSAGE);
+							MainFrame.this.setVisible(false);
+							MainFrame.this.getContentPane().removeAll();
+							seat s = new seat();
+							MainFrame.this.add(s);
+							MainFrame.this.setVisible(true);
+						}
+					}
+				});
+			}
+		}
+	}
 	class member_view extends JPanel {	// 회원 화면 
 		private JLabel title_m = new JLabel("로그인");
 		private JLabel IDl_m = new JLabel("아이디");
@@ -432,104 +873,242 @@ public class MainFrame extends JFrame{
 			Back_m.setBackground(button_c);		
 			add(Back_m);
 		}
-		class loginListener implements ActionListener{
+		class loginListener implements ActionListener{ //로그인
 			public void actionPerformed(ActionEvent e) {
-				if(IDtf_m.getText().equals("test")) {
-					if(PStf_m.getText().equals("1234")) {
-						int result = JOptionPane.showConfirmDialog(null, 
-								"이용권을 구매하시겠습니까?", "이용권 구매",JOptionPane.YES_NO_OPTION);
-						if(result == JOptionPane.YES_OPTION) {
-							MainFrame.this.setVisible(false);
-							MainFrame.this.getContentPane().removeAll();
-							MainFrame.this.add(new sc_Buypass());
-							MainFrame.this.setVisible(true);
-					}
-						else {
-							JOptionPane.showMessageDialog(null, "남은시간이 차감됩니다","이용권",JOptionPane.PLAIN_MESSAGE);
+				int login = -1;
+				try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+					
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					Connection conn1 =
+					DriverManager.getConnection(url, mysql_user, mysql_password);
+					String upsql = "select password from member where "
+							+ "ID = '" + IDtf_m.getText() +"'"; // 선택한 좌석의 이용횟수, 여부 변경
+					Statement upstmt = conn1.createStatement();
+					ResultSet rs = upstmt.executeQuery(upsql);
+					if(rs.next()) {
+						if(rs.getString(1).equals(PStf_m.getText())){
+							login = 1;
+							mpn = IDtf_m.getText();
 						}
-						
+						else
+							login = 0;
 					}
-					else {
-						JOptionPane.showMessageDialog(null, "비밀번호를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);
-					}
+					if(conn1!=null)
+						conn1.close();
+					if(upstmt!=null)
+						upstmt.close();
 				}
-				else
-					JOptionPane.showMessageDialog(null, "아이디를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);
+				catch(ClassNotFoundException error) {
+					JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+					return;
+				}
+				
+				catch(SQLException error) {
+					JOptionPane.showMessageDialog(null, "DB접속오류11"+error.getMessage());
+					return;
+				}
+				if(login == 1) {	 		
+					int result = JOptionPane.showConfirmDialog(null,  //아이디 비번 동일
+							"이용권을 구매하시겠습니까?", "이용권 구매",JOptionPane.YES_NO_OPTION);
+					if(result == JOptionPane.YES_OPTION) {
+						MainFrame.this.setVisible(false);
+						MainFrame.this.getContentPane().removeAll();
+						member_buy mb = new member_buy();
+						mb.Back_mb.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								MainFrame.this.setVisible(false);
+								MainFrame.this.getContentPane().removeAll();
+								seat s = new seat();
+								MainFrame.this.add(s);
+								MainFrame.this.setVisible(true);
+							}
+						});
+						MainFrame.this.add(mb);
+						MainFrame.this.setVisible(true);
+					}
+					else { 
+						JOptionPane.showMessageDialog(null, "남은시간이 차감됩니다","이용권",JOptionPane.PLAIN_MESSAGE);
+						String usertime = null;
+						try {
+							// MySQL DB용 드라이로드
+							Class.forName("com.mysql.cj.jdbc.Driver");
+							Connection conn =
+							DriverManager.getConnection(url, mysql_user, mysql_password);
+							String sql = "SELECT time FROM member WHERE (ID = '"+IDtf_m.getText() +"')"; // 남은시간 000000이면 남은시간 없습니다 메세지창 있으면 진행
+							Statement stmt = conn.createStatement();
+							ResultSet result1 = stmt.executeQuery(sql);	
+							while(result1.next()) {
+								usertime = result1.getString(1);
+							}
+							if(conn!=null)    //db 연결해제
+								conn.close();
+							if(stmt!=null)
+								stmt.close();
+							if(usertime.equals("00:00:00") || usertime == null) {
+								JOptionPane.showMessageDialog(null, "남은시간이 없습니다.", "Message",JOptionPane.INFORMATION_MESSAGE);
+								return;
+							}
+							else {
+								JOptionPane.showMessageDialog(null, "남은시간: " + usertime, "Message",JOptionPane.INFORMATION_MESSAGE);
+								try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+									
+									Class.forName("com.mysql.cj.jdbc.Driver");
+									Connection conn1 =
+									DriverManager.getConnection(url, mysql_user, mysql_password);
+									String upsql = "UPDATE seat SET use_count = use_count+1,"
+											+ "use_Status = 1, buytime = now() WHERE (seat_number = '"
+											+selected_seat + "')"; // 선택한 좌석의 이용횟수, 여부 변경
+									Statement upstmt = conn1.createStatement();
+									upstmt.executeUpdate(upsql);
+									if(conn1!=null)
+										conn1.close();
+									if(upstmt!=null)
+										upstmt.close();
+								}
+								catch(ClassNotFoundException error) {
+									JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+									return;
+								}				
+								catch(SQLException error) {
+									JOptionPane.showMessageDialog(null, "DB접속오류11"+error.getMessage());
+									return;
+								}								
+								MainFrame.this.setVisible(false);
+								MainFrame.this.getContentPane().removeAll();
+								seat s = new seat();
+								MainFrame.this.add(s);
+								MainFrame.this.setVisible(true);
+							}			
+						}
+						catch(ClassNotFoundException error) {
+							JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+							return;
+						}
+						catch(SQLException error) {
+							JOptionPane.showMessageDialog(null, "DB접속오류");
+							return;
+						}
+					}	
+				}
+				else if(login == 0) { //아이디만 동일
+					JOptionPane.showMessageDialog(null, "비밀번호를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);
+				}
+				else //아이디 비동일
+					JOptionPane.showMessageDialog(null, "아이디를 다시 입력하세요", "Message",JOptionPane.ERROR_MESSAGE);	
 			}
 		}
 	}
 	
-	public class sc_Buypass extends JPanel{ // 이용권 구매 창
-		Color back = new Color(0x030066);
-		Color sm_back = new Color(0x99CCFF);
-		Font font = new Font("맑은 고딕", Font.BOLD, 20); 
-		String Hlist[] =  {"2시간  4000원", "4시간  7000원",
-		    	"6시간  10000원","8시간  13000원","10시간  15000원","30시간  50000원",
-		    	"50시간  80000원","100시간  150000원","150시간  210000원","200시간  260000원"};
-		public sc_Buypass(){
-			setTitle("이용권 구매 창");
-			setSize(1000,780);
-			setLocation(220,50);
-			setResizable(false); // 프레임 창 고정
-			setLocationRelativeTo(null); // 창이 가운데 뜨도록
-			setBackground(back_c);
-			
-			setLayout(null);
-		
-			
-			
-			JLabel txtbuy = new JLabel("이용권 구매");
-			JLabel txt2 = new JLabel("* 30시간부터 사물함 이용 가능");
-			
-			txtbuy.setLocation(80, -50);
-			txtbuy.setSize(300,200);
-			txtbuy.setForeground(Color.white);
-		    txtbuy.setFont(font.deriveFont(40.0f));
-		    txt2.setLocation(300, -40);
-			txt2.setSize(210,200);
-			txt2.setForeground(Color.white);
-		    txt2.setFont(font.deriveFont(14.0f));
-		    add(txt2);
-		    add(txtbuy); 
-		    
-		    buyListener bL = new buyListener();
-		    
-		    for(int i = 0; i<5; i++) {
-		    	String text = Hlist[i];
-		    	JButton btn = new JButton(text);
-		    	btn.setLocation(80,100+(i*110));
-		    	btn.setSize(200,100);
-		    	btn.setForeground(Color.black);
-				btn.setBackground(button_c);
-				btn.setFont(font);
-				btn.addActionListener(bL);
-		    	add(btn);
-		    }
-		    for(int i = 5; i<10; i++) {
-		    	String text = Hlist[i];
-		    	JButton btn = new JButton(text);
-		    	btn.setLocation(580,100+((i-5)*110));
-		    	btn.setSize(210,100);
-		    	btn.setForeground(Color.black);
-				btn.setBackground(button_c);
-				btn.setFont(font);
-				btn.addActionListener(bL);
-		    	add(btn);
-		    }		
-		    setVisible(true);			
-		}	
-	}
-	class buyListener implements ActionListener{ //이용권 버튼 클릭시 이벤트(다른 클래스에서도 사용가능)
+	class buyListener implements ActionListener{ //이용권 버튼 클릭시 이벤트(다른 클래스에서도 사용가능
+		boolean buy = false; //false 일때 비회원 구매
+		public buyListener(String id) {
+			if(id.equals("회원"))
+				buy = true;
+		}
 		public void actionPerformed(ActionEvent e) {
 			int result = JOptionPane.showConfirmDialog(null,
 					"구매하시겠습니까?","이용권 구매",JOptionPane.YES_NO_OPTION);
 			if(result == JOptionPane.YES_OPTION) {
-				JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
-				MainFrame.this.setVisible(false);
-				MainFrame.this.getContentPane().removeAll();
-				seat s = new seat();
-				MainFrame.this.add(s);
-				MainFrame.this.setVisible(true);
+				String time = e.getActionCommand();
+				time = time.substring(14, time.indexOf("시"));
+				time = time + ":00:00";
+				LocalDateTime now = LocalDateTime.now();	 
+		        // 포맷팅
+		        String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		        
+				if(buy) {
+					try {
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE studycafe.seat SET ID = '" + mpn + "',"
+								+ "buytime = '" +formatedNow + "', use_status = '1', use_count = use_count + 1 WHERE"
+								+ " (seat_number = '" + selected_seat + "')";
+						System.out.println(sql);
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
+					JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
+				else {
+					try { //비회원 정보 저장 sql문
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "INSERT INTO nonmember VALUES" + 
+								"('"+ npn + "', '" + time + "')";
+						System.out.println(sql);
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
+					try { //비회원 정보 seat에 저장 sql문
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE studycafe.seat SET ID = '" + npn + "',"
+								+ "buytime = '" +formatedNow + "', use_status = '1', use_count = use_count + 1 WHERE"
+								+ " (seat_number = '" + selected_seat + "')";
+						System.out.println(sql);
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
+					JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
+					MainFrame.this.setVisible(false);
+					MainFrame.this.getContentPane().removeAll();
+					seat s = new seat();
+					MainFrame.this.add(s);
+					MainFrame.this.setVisible(true);
+				}
 			}	
 		}
 	}
@@ -671,10 +1250,10 @@ public class MainFrame extends JFrame{
 			Phtf_n.setBounds(450,275,320,40);
 			Phtf_n.setFont(font_in);
 			add(Phtf_n);
-			
+		
 			join_n.setBounds(690,350,80,40);
 			join_n.setFont(font);
-			join_n.setBackground(button_c);		
+			join_n.setBackground(button_c);	
 			add(join_n);
 			
 			Back_n.setBounds(950,520,80,40); 
@@ -701,7 +1280,7 @@ public class MainFrame extends JFrame{
 		private JButton bt10m = new JButton("<HTML><center>150시간<br/>210,000원<HTML>");
 		private JButton bt11m = new JButton("<HTML><center>200시간<br/>260,000원<HTML>");
 		private JButton bt12m = new JButton("<HTML><center>300시간<br/>300,000원<HTML>");
-		private JButton Back_mb = new JButton("이전");		// 뒤로 가는 버튼
+		private JButton Back_mb = new JButton("메인으로");		// 뒤로 가는 버튼
 		public member_buy() {
 			this.setSize(1100,600);
 			this.setLocation(90,90);
@@ -720,7 +1299,8 @@ public class MainFrame extends JFrame{
 			title3_mb.setFont(font);
 			add(title3_mb);
 			
-			buyListener bL = new buyListener();
+			String title = title1_mb.getText().substring(0,  title1_mb.getText().indexOf(" "));
+			buyListener bL = new buyListener(title);
 			
 			bt1m.setBounds(80,200,200,60);
 			bt1m.setFont(font_in);
@@ -798,7 +1378,7 @@ public class MainFrame extends JFrame{
 			bt12m.addActionListener(bL);
 			add(bt12m);
 			
-			Back_mb.setBounds(950,520,80,40); 
+			Back_mb.setBounds(930,520,160,40); 
 			Back_mb.setFont(font);
 			Back_mb.setBackground(button_c);		
 			add(Back_mb);
@@ -814,13 +1394,6 @@ public class MainFrame extends JFrame{
 		private JButton bt4n = new JButton("<HTML><center>8시간<br/>13,000원<HTML>");	
 		private JButton bt5n = new JButton("<HTML><center>10시간<br/>15,000원<HTML>");
 		private JButton bt6n = new JButton("<HTML><center>12시간<br/>17,000원<HTML>");	
-		private JLabel title3_nb = new JLabel("시간권");
-		private JButton bt7n = new JButton("<HTML><center>30시간<br/>50,000원<HTML>");
-		private JButton bt8n = new JButton("<HTML><center>50시간<br/>80,000원<HTML>");	
-		private JButton bt9n = new JButton("<HTML><center>100시간<br/>150,000원<HTML>");
-		private JButton bt10n = new JButton("<HTML><center>150시간<br/>210,000원<HTML>");
-		private JButton bt11n = new JButton("<HTML><center>200시간<br/>260,000원<HTML>");
-		private JButton bt12n = new JButton("<HTML><center>300시간<br/>300,000원<HTML>");
 		private JButton Back_nb = new JButton("이전");		// 뒤로 가는 버튼
 		public nonmember_buy() {
 			this.setSize(1100,600);
@@ -832,88 +1405,49 @@ public class MainFrame extends JFrame{
 			title1_nb.setFont(button_font);
 			add(title1_nb);
 			
-			title2_nb.setBounds(257,140,100,40);
+			title2_nb.setBounds(550,140,100,40);
 			title2_nb.setFont(font);
 			add(title2_nb);
 			
-			buyListener bL = new buyListener(); //회원 구매 파트에서 가져옴
+			String title = title1_nb.getText().substring(0,  title1_nb.getText().indexOf(" "));
+			buyListener bL = new buyListener(title); //회원 구매 파트에서 가져옴
 			
-			bt1n.setBounds(80,200,200,60);
+			bt1n.setBounds(380,200,200,60);
 			bt1n.setFont(font_in);
 			bt1n.setBackground(button_c);
 			bt1n.addActionListener(bL);
 			add(bt1n);
 			
-			bt2n.setBounds(300,200,200,60);
+			bt2n.setBounds(600,200,200,60);
 			bt2n.setFont(font_in);
 			bt2n.setBackground(button_c);	
 			bt2n.addActionListener(bL);
 			add(bt2n);
 			
-			bt3n.setBounds(80,315,200,60);
+			bt3n.setBounds(380,315,200,60);
 			bt3n.setFont(font_in);
 			bt3n.setBackground(button_c);	
 			bt3n.addActionListener(bL);
 			add(bt3n);
 			
-			bt4n.setBounds(300,315,200,60);
+			bt4n.setBounds(600,315,200,60);
 			bt4n.setFont(font_in);
 			bt4n.setBackground(button_c);	
 			bt4n.addActionListener(bL);
 			add(bt4n);
 			
-			bt5n.setBounds(80,430,200,60);
+			bt5n.setBounds(380,430,200,60);
 			bt5n.setFont(font_in);
 			bt5n.setBackground(button_c);	
 			bt5n.addActionListener(bL);
 			add(bt5n);
 			
-			bt6n.setBounds(300,430,200,60);
+			bt6n.setBounds(600,430,200,60);
 			bt6n.setFont(font_in);
 			bt6n.setBackground(button_c);
 			bt6n.addActionListener(bL);
 			add(bt6n);
-			
-			title3_nb.setBounds(777,140,100,40);
-			title3_nb.setFont(font);
-			add(title3_nb);
-			
-			bt7n.setBounds(600,200,200,60);
-			bt7n.setFont(font_in);
-			bt7n.setBackground(button_c);	
-			bt7n.addActionListener(bL);
-			add(bt7n);
-			
-			bt8n.setBounds(820,200,200,60);
-			bt8n.setFont(font_in);
-			bt8n.setBackground(button_c);
-			bt8n.addActionListener(bL);
-			add(bt8n);
-			
-			bt9n.setBounds(600,315,200,60);
-			bt9n.setFont(font_in);
-			bt9n.setBackground(button_c);	
-			bt9n.addActionListener(bL);
-			add(bt9n);
-			
-			bt10n.setBounds(820,315,200,60);
-			bt10n.setFont(font_in);
-			bt10n.setBackground(button_c);	
-			bt10n.addActionListener(bL);
-			add(bt10n);
-			
-			bt11n.setBounds(600,430,200,60);
-			bt11n.setFont(font_in);
-			bt11n.setBackground(button_c);	
-			bt11n.addActionListener(bL);
-			add(bt11n);
-			
-			bt12n.setBounds(820,430,200,60);
-			bt12n.setFont(font_in);
-			bt12n.setBackground(button_c);	
-			bt12n.addActionListener(bL);
-			add(bt12n);
-			
+						
 			Back_nb.setBounds(950,520,80,40); 
 			Back_nb.setFont(font);
 			Back_nb.setBackground(button_c);		
@@ -921,12 +1455,14 @@ public class MainFrame extends JFrame{
 		}
 	}
 	class AdminPanel extends JPanel{
-		seat_color sc = new seat_color(); //좌석으로 보기
-		seat_main sg = new seat_main(); //그래프로 보기
+//		seat_color sc = new seat_color(); //좌석으로 보기
+//		seat_main sg = new seat_main(); //그래프로 보기
 		JRadioButton seatcolor = new JRadioButton("좌석으로 보기");
 		JRadioButton seatgraph = new JRadioButton("그래프로 보기");
 		ButtonGroup group = new ButtonGroup();
 		JButton back = new JButton("이전");
+		SeatDB[] seatdb = new SeatDB[60];  //seat각각의 객체 생성
+		
 		public AdminPanel() {	
 			group.add(seatcolor);
 			group.add(seatgraph);
@@ -957,6 +1493,57 @@ public class MainFrame extends JFrame{
 			setBackground(button_c);
 			this.setLocation(90, 60);
 			this.setLayout(null);
+			
+			try {
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT * FROM seat";
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);
+				int i = 0;
+				while(rs.next()) {
+					seatdb[i] = new SeatDB();
+					seatdb[i].seat_number = Integer.parseInt(rs.getString("seat_number"));
+					if(rs.getString("change_count") !=null)
+						seatdb[i].change_count = Integer.parseInt(rs.getString("change_count"));
+					else
+						seatdb[i].change_count = 0;
+					if(rs.getString("use_time") !=null)
+					{
+						String[] time = rs.getString("use_time").split(":");
+						int use_time = Integer.parseInt(time[0]) * 60 + Integer.parseInt(time[1]);
+						seatdb[i].use_time = use_time;
+					}
+					else
+						seatdb[i].use_time = 0;
+					if(rs.getString("use_count") !=null)
+						seatdb[i].use_count = Integer.parseInt(rs.getString("use_count"));
+					else
+						seatdb[i].use_count = 0;
+					seatdb[i].use_Status = rs.getBoolean("use_Status");
+					if(rs.getString("use_count") !=null)
+						seatdb[i].ID = rs.getString("ID");
+//					seatdb[i].ID = null; 굳이 null을 넣지않아도 null
+					i+=1;
+				}
+//				JOptionPane.showMessageDialog(null, seatdb[0].change_count);
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+				return;
+			}
+			seat_color sc = new seat_color(seatdb); //좌석으로 보기
+			seat_main sg = new seat_main(seatdb); //그래프로 보기
 			
 			seatcolor.addItemListener(new ItemListener() {			
 				public void itemStateChanged(ItemEvent e) {
@@ -1008,6 +1595,24 @@ public class MainFrame extends JFrame{
 		}
 		
 	}
+	class SeatDB{
+		int seat_number;
+		int change_count;
+		int use_time;
+		int use_count;
+		boolean use_Status;
+		String ID;
+		public int seat_calc() {
+			int seatdata;
+			if(change_count + use_count == 0)
+				seatdata = 0;
+			else
+				seatdata = use_time / (change_count + use_count);
+			return seatdata;
+		}
+		// (이용시간) / (이용횟수 + 이동횟수)
+		// use_time / (change_count + use_count)
+	}
 	class BarPanel extends JPanel{
 		JButton SeatStatus = new JButton("좌석 현황");
 		JButton member = new JButton("회원 관리");
@@ -1035,20 +1640,30 @@ public class MainFrame extends JFrame{
 		Color y = Color.yellow;
 		int randomIndex;
 		Random random = new Random();
-		Color [] color = new Color []{r,g,y};
-		
-		public seat_color() {
+		SeatDB []seatdb;
+		public seat_color(SeatDB[] seatdb) {
 			setLocation(10,0);
 			setSize(850, 570);
 			this.setBackground(button_c);
 			JButton[] seat = new JButton[60];
-			
-			for(int i=0;i<60;i++) {
-				randomIndex = random.nextInt(3);
+			this.seatdb = seatdb;
+			int max = seatdb[0].seat_calc();
+			for(int i = 1;i<60;i++) {
+				if(max < seatdb[i].seat_calc())
+					max = seatdb[i].seat_calc();
+				if(max == 0)
+					max++;
+			}
+			for(int i=0;i<60;i++) {			
 				seat[i] = new JButton(Integer.toString(i+1));
 				seat[i].setFont(new Font("맑은 고딕", Font.BOLD, 12));
 				seat[i].setSize(60,45);
-				seat[i].setBackground(color[randomIndex]);
+				if(((seatdb[i].seat_calc() * 100)/max)<=20)
+					seat[i].setBackground(Color.red);
+				else if(((seatdb[i].seat_calc() * 100)/max)<=70)
+					seat[i].setBackground(Color.yellow);
+				else
+					seat[i].setBackground(Color.green);
 				seat[i].setForeground(button_c);
 			}
 
@@ -1109,20 +1724,49 @@ public class MainFrame extends JFrame{
 			setLocation(0,480);
 			next.setBounds(700, 10, 30, 30);
 			prev.setBounds(650, 10, 30, 30);
-			
+					
 			add(prev);
 			add(next);
 		}
 	}
 	class seat_main extends JPanel{
-		public seat_main() {
+		seat_graph sg;
+		underbar ub;
+		int start = 0, end = 15;
+		public seat_main(SeatDB[] seatdb) {
 			setSize(850, 570);
 			setLocation(10,50);
 			setBackground(button_c);
 			setLayout(null);
+			sg = new seat_graph(seatdb, start, end);
+			ub = new underbar();
+			add(sg);
+			add(ub);
 			
-			add(new seat_graph());
-			add(new underbar());
+			ub.next.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					remove(sg);
+					setVisible(false);
+					start = (start + 15)%60;
+					end = (end + 15)%60==0?60:(end+ 15)%60;
+					sg = new seat_graph(seatdb, start, end);
+					add(sg);
+					setVisible(true);
+				}
+			});
+			ub.prev.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					remove(sg);
+					setVisible(false);
+					start -= 15;
+					end -= 15;
+					start = (start+60)%60;
+					end = (end + 60)%60==0?60:(end+60)%60;
+					sg = new seat_graph(seatdb, start, end);
+					add(sg);
+					setVisible(true);
+				}
+			});
 		}
 	}
 	class seat_graph extends JPanel{
@@ -1130,15 +1774,16 @@ public class MainFrame extends JFrame{
 		int [] score = new int[60];
 		int randomIndex;
 		Random random = new Random();
-		public seat_graph() {
+		SeatDB[] seatdb;
+		int start, end;
+		public seat_graph(SeatDB[] seatdb, int start, int end) {
 			setLocation(0, 0);
 			setSize(850, 480);
+			this.seatdb = seatdb;
+			this.start = start;
+			this.end = end;
 		}
-		public void paint(Graphics g){	
-			for(int i = 0 ;i<60;i++) {
-				randomIndex = random.nextInt(100);
-				score[i] = randomIndex;
-			}
+		public void paint(Graphics g){		
 			g.clearRect(0,0,getWidth(),getHeight());
 			
 			Stroke line = new BasicStroke(3);
@@ -1152,11 +1797,17 @@ public class MainFrame extends JFrame{
 			g2.setFont(font);
 			g2.drawString("0", 60, 450);
 			g2.drawString("(%)", 80, 30);
-			
-			for(int i = 0;i<15;i++) {
-				g2.drawString("좌석"+(i+1), i*43+100,470);
+			int max = seatdb[0].seat_calc();
+			for(int i = 1;i<60;i++) {
+				if(max<seatdb[i].seat_calc())
+					max = seatdb[i].seat_calc(); //가장 많은 이용시간
+				if(max == 0)
+					max++;
+			}
+			for(int i = start;i<end;i++) {
+				g2.drawString("좌석"+(i+1), (i-start)*43+100,470);
 				g.setColor(Color.blue);
-				g.fillRect(i*43+120, 450-score[i]*4, 10, score[i]*4);
+				g.fillRect((i-start)*43+120, 450-((seatdb[i].seat_calc() * 100)/max)*4, 10,((seatdb[i].seat_calc() * 100)/max)*4);
 			}
 			g2.setStroke(dashed);
 	        for(int i =1;i<11;i++) {
@@ -1166,6 +1817,16 @@ public class MainFrame extends JFrame{
 		}
 	}
 	
+	class member{
+		String name;
+		int age;
+		boolean gender;
+		String phone_number;
+		String time;
+		String address;
+		String ID;
+		String password;
+	}
 	public class User extends JPanel{
 		JButton mem_editBtn = new JButton("수정");
 		JButton mem_delBtn = new JButton("삭제");
@@ -1177,11 +1838,13 @@ public class MainFrame extends JFrame{
 		JLabel mem_phoneL = new JLabel("전화번호 : ");
 		JLabel mem_adrL = new JLabel("주소 : ");
 		JLabel mem_timeL = new JLabel("남은시간 : ");
-		JLabel mem_mfL = new JLabel("남자");
-		JLabel mem_time = new JLabel("00:00:00");
+		JLabel mem_ID = new JLabel("ID : ");
+		JLabel mem_mfL = new JLabel();
+		JLabel mem_time = new JLabel();
 		
 		JTextField mem_nameT = new JTextField();
 		JTextField mem_ageT = new JTextField();
+		JTextField mem_IDT = new JTextField();
 		JTextField mem_stxT = new JTextField();
 		JTextField mem_phoneT = new JTextField();
 		JTextArea mem_adrT = new JTextArea();
@@ -1193,16 +1856,73 @@ public class MainFrame extends JFrame{
 		mem_group.add(mem_rb1);
 		mem_group.add(mem_rb2);
 		mem_rb1.setSelected(true);*/
-
+		int rowCnt;
+		String gender;
+		member[] members;
 		public User() {
+			try {
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT COUNT(*) FROM member";
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql);
+				rowCnt = 0;
+				while(rs.next()) {
+					rowCnt = rs.getInt(1);
+				}				
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+				if(rs!=null)
+					rs.close();
+				members = new member[rowCnt]; //회원 수만큼 member 객체 생성
+				conn = DriverManager.getConnection(url, mysql_user, mysql_password);
+				sql = "SELECT * FROM member";
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(sql);
+				int i = 0;
+				while(rs.next()) {
+					members[i] = new member();
+					members[i].name = rs.getString("name");
+					members[i].age = rs.getInt("age");
+					members[i].gender = rs.getBoolean("gender");
+					members[i].phone_number = rs.getString("phone_number");
+					members[i].time = rs.getString("time");
+					members[i].address = rs.getString("address");
+					members[i].ID = rs.getString("ID");
+					members[i].password = rs.getString("password");
+					i++;
+				}
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+				return;
+			}
 			setSize(1100,650);
 			this.setLayout(null);
-		
-			String[] columns = {"이름","나이","성별","전화번호","주소","남은시간"};
-			String[][] data = {{"홍길동","12","남자","010-3423-1234","대한민국","00:00:00"},
-					{"김영희","23","여자","123-4567-8910","대한민국","00:00:00"}
-			};
-			DefaultTableModel model = new DefaultTableModel(data,columns);
+			
+			String[] columns = {"이름","나이","성별","전화번호","주소","남은시간", "ID"};
+			String[][] member_db = new String[rowCnt][7];
+			for(int i=0;i<rowCnt;i++) {
+				if(members[i].gender)
+					gender="여자";
+				else
+					gender="남자";
+				member_db[i] = new String []{members[i].name, members[i].age+"", gender,
+						members[i].phone_number, members[i].address, members[i].time,members[i].ID};
+			}
+			DefaultTableModel model = new DefaultTableModel(member_db,columns);
 			// 회원 정보 테이블 생성
 			JTable table = new JTable(model);
 			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1221,6 +1941,7 @@ public class MainFrame extends JFrame{
 					mem_phoneT.setText((String)table.getValueAt(row, 3));
 					mem_adrT.setText((String)table.getValueAt(row, 4));
 					mem_time.setText((String)table.getValueAt(row, 5));
+					mem_IDT.setText((String)table.getValueAt(row, 6));
 				}
 			});
 			
@@ -1234,11 +1955,37 @@ public class MainFrame extends JFrame{
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// TODO Auto-generated method stub
-					if(table.getSelectedRow() == -1) {
+					
+					int row = table.getSelectedRow();
+
+					try {
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "DELETE FROM `studycafe`.`member` WHERE (`ID` = '" +table.getValueAt(row, 6)+ "')";
+						PreparedStatement stmt = conn.prepareStatement(sql);
+						stmt.executeUpdate();
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
+					if(row == -1) {
 						return;
 					}
 					else {
-						model.removeRow(table.getSelectedRow()); // 삭제
+						model.removeRow(row); // 삭제
 					}
 				}
 			});
@@ -1254,13 +2001,43 @@ public class MainFrame extends JFrame{
 			mem_editBtn.addActionListener(new ActionListener() {  // 수정버튼 일단 string 으로 구현함
 				public void actionPerformed(ActionEvent e) {
 					int row = table.getSelectedRow();
+					
+					try {
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE studycafe.member SET"
+								+ " name = '" + mem_nameT.getText() +"',"
+								+ " age = '" + mem_ageT.getText() +"',"
+								+ " phone_number = '" + mem_phoneT.getText() + "',"
+								+ " address = '" + mem_adrT.getText()+ "',"
+								+ " ID = '" + mem_IDT.getText() + "' WHERE (ID = '" + table.getValueAt(row, 6)+"')";
+						PreparedStatement ptmt = conn.prepareStatement(sql);
+						ptmt.executeUpdate();
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(ptmt!=null)
+							ptmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
 					table.setValueAt(mem_nameT.getText(), row, 0);
 					table.setValueAt(mem_ageT.getText(), row, 1);
 					table.setValueAt(mem_mfL.getText(), row, 2);
 					table.setValueAt(mem_phoneT.getText(), row, 3);
 					table.setValueAt(mem_adrT.getText(), row, 4);
 					table.setValueAt(mem_time.getText(), row, 5);
-					}
+					table.setValueAt(mem_IDT.getText(), row, 6);	
+				}
 			});
 			
 			//
@@ -1290,6 +2067,16 @@ public class MainFrame extends JFrame{
 			mem_ageT.setLocation(670,150);
 			mem_ageT.setSize(50,25);
 			this.add(mem_ageT);
+			
+			mem_ID.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // ID 레이블
+			mem_ID.setLocation(800,150);
+			mem_ID.setSize(200,25);
+			this.add(mem_ID);
+			
+			mem_IDT.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // ID 레이블
+			mem_IDT.setLocation(850,150);
+			mem_IDT.setSize(170,25);
+			this.add(mem_IDT);
 			
 			mem_sL.setFont(new Font("맑은 고딕", Font.BOLD, 20)); // 성별 레이블
 			mem_sL.setLocation(600,200);
