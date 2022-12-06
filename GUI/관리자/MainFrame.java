@@ -55,7 +55,7 @@ public class MainFrame extends JFrame{
 			this.id = id;
 		}
 		public void run() {
-			try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+			try { 
 				Class.forName("com.mysql.cj.jdbc.Driver");
 				Connection con =
 				DriverManager.getConnection(url, mysql_user, mysql_password);
@@ -79,9 +79,9 @@ public class MainFrame extends JFrame{
 				JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
 				return;
 			}
-			if(timer == 1) {
+			if(timer == 1) {///////////////////회원 시간 차감/////////////////////////////
 				while(true) {
-					try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+					try { 
 						Class.forName("com.mysql.cj.jdbc.Driver");
 						Connection conn =
 						DriverManager.getConnection(url, mysql_user, mysql_password);
@@ -89,7 +89,7 @@ public class MainFrame extends JFrame{
 						Statement stmt = conn.createStatement();
 						stmt.executeUpdate(sql);
 						
-						try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+						try { 
 							Class.forName("com.mysql.cj.jdbc.Driver");
 							Connection con =
 							DriverManager.getConnection(url, mysql_user, mysql_password);
@@ -140,7 +140,7 @@ public class MainFrame extends JFrame{
 						return;
 					}
 				}
-				try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+				try { // 
 					Class.forName("com.mysql.cj.jdbc.Driver");
 					Connection conn =
 					DriverManager.getConnection(url, mysql_user, mysql_password);
@@ -165,7 +165,7 @@ public class MainFrame extends JFrame{
 					return;
 				}
 			}
-			else {
+			else {///////////////////////////////////비회원 시간 차감 /////////////////////////////////////////
 				while(true) {
 					try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
 						Class.forName("com.mysql.cj.jdbc.Driver");
@@ -496,6 +496,8 @@ public class MainFrame extends JFrame{
 				JOptionPane.showMessageDialog(null, "DB접속오류");
 				return;
 			}
+			
+			
 			
 			for(int i = 0; i < 60 ; i++) {
 				seat[i].addActionListener(new ActionListener(){
@@ -2627,16 +2629,16 @@ public class MainFrame extends JFrame{
 			ok.addActionListener(new ActionListener(){
 				@Override
 				public void actionPerformed(ActionEvent e) {
-//					if (idt.getText().equals("test") && passwordt.getText().equals("1234")) {
+					if (idt.getText().equals("admin") && passwordt.getText().equals("1234")) {
 						AdminPanel adminp = new AdminPanel();
 						MainFrame.this.add(adminp);
 						adminp.updateUI();
 						setVisible(false);
 						back.setVisible(false);
-//					}
-//					else {
-//						JOptionPane.showMessageDialog(null, "로그인 실패", "ERROR", JOptionPane.ERROR_MESSAGE );
-//					}
+					}
+					else {
+						JOptionPane.showMessageDialog(null, "로그인 실패", "ERROR", JOptionPane.ERROR_MESSAGE );
+					}
 				}
 			});
 			
