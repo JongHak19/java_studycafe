@@ -25,6 +25,7 @@ public class MainFrame extends JFrame{
 	static String npn = null;
 	static String mpn = null;
 	static String seat_id = null;
+	static Thread[] ths = new Thread[60];
 	// 좌석 이용시 (회원,비회원이 이용권 결제 후 이용시 , 회원이 남은시간으로 이용시 ) buytime에 SELECT now(); 저장해야함
 	
 	public MainFrame(){
@@ -45,11 +46,241 @@ public class MainFrame extends JFrame{
 		
 		setVisible(true);	
 	}
+	////////////////////////////////////////////프로그램 시작 시 이용 중인 회원 시간 차감/////////////////////////////
+	class TimerRunnable implements Runnable{ 
+		String id = null;
+		String time = null;
+		int timer = 1;
+		public TimerRunnable(String id) {
+			this.id = id;
+		}
+		public void run() {
+			try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection con =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql2 = "SELECT time FROM member where ID = '"+id+"'";
+				Statement stmt2 = con.createStatement();
+				ResultSet rs = stmt2.executeQuery(sql2);
+				if(rs.next())
+					timer = 1;
+				else
+					timer = 0;
+				if(con!=null)
+					con.close();
+				if(stmt2!=null)
+					stmt2.close();	
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+				return;
+			}
+			if(timer == 1) {
+				while(true) {
+					try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE member SET time = SUBTIME(time, 1) where id = '"+ id +"'";
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+							Class.forName("com.mysql.cj.jdbc.Driver");
+							Connection con =
+							DriverManager.getConnection(url, mysql_user, mysql_password);
+							String sql2 = "SELECT time FROM member where ID = '"+id+"'";
+							Statement stmt2 = con.createStatement();
+							ResultSet rs = stmt2.executeQuery(sql2);
+							while(rs.next()) {
+								time = rs.getString(1);
+								if(time.equals("00:00:00"))
+									break;
+								System.out.println(id + " : " +time);
+							}
+							if(con!=null)
+								con.close();
+							if(stmt2!=null)
+								stmt2.close();	
+						}
+						catch(ClassNotFoundException error) {
+							JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+							return;
+						}
+						catch(SQLException error) {
+							JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+							return;
+						}
+						
+						if(conn!=null)
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+						if(time.equals("00:00:00")) {
+							break;
+						}
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+						return;
+					}
+					
+					try {
+						Thread.sleep(1000);
+					}catch(InterruptedException e) {
+						return;
+					}
+				}
+				try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					Connection conn =
+					DriverManager.getConnection(url, mysql_user, mysql_password);
+					String sql = "UPDATE seat SET change_count = change_count +1, use_time = "
+							+ "addtime(use_time, timediff(now(),buytime)), " // 현재시간과 결제시 시간 계산 후 시간 더하기
+							+ "use_Status = 0, buytime = null, ID = null WHERE (ID = '" // buytime 초기화
+							+id + "')";
+					Statement stmt = conn.createStatement();
+					stmt.executeUpdate(sql);
+					if(conn!=null)
+						conn.close();
+					if(stmt!=null)
+						stmt.close();
+				}
+				catch(ClassNotFoundException error) {
+					JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+					return;
+				}
+				
+				catch(SQLException error) {
+					JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+					return;
+				}
+			}
+			else {
+				while(true) {
+					try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE nonmember SET ticket = SUBTIME(ticket, 1) where number = '"+ id +"'";
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+							Class.forName("com.mysql.cj.jdbc.Driver");
+							Connection con =
+							DriverManager.getConnection(url, mysql_user, mysql_password);
+							String sql2 = "SELECT ticket FROM nonmember where number = '"+id+"'";
+							Statement stmt2 = con.createStatement();
+							ResultSet rs = stmt2.executeQuery(sql2);
+							while(rs.next()) {
+								time = rs.getString(1);
+								if(time.equals("00:00:00"))
+									break;
+								System.out.println(id + " : " +time);
+							}
+							if(con!=null)
+								con.close();
+							if(stmt2!=null)
+								stmt2.close();	
+						}
+						catch(ClassNotFoundException error) {
+							JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+							return;
+						}
+						catch(SQLException error) {
+							JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+							return;
+						}
+						
+						if(conn!=null)
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+						if(time.equals("00:00:00")) {
+							break;
+						}
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+						return;
+					}
+					
+					try {
+						Thread.sleep(1000);
+					}catch(InterruptedException e) {
+						return;
+					}
+				}
+				try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					Connection conn =
+					DriverManager.getConnection(url, mysql_user, mysql_password);
+					String sql = "UPDATE seat SET change_count = change_count +1, use_time = "
+							+ "addtime(use_time, timediff(now(),buytime)), " // 현재시간과 결제시 시간 계산 후 시간 더하기
+							+ "use_Status = 0, buytime = null, ID = null WHERE (ID = '" // buytime 초기화
+							+id + "')";
+					Statement stmt = conn.createStatement();
+					stmt.executeUpdate(sql);
+					if(conn!=null)
+						conn.close();
+					if(stmt!=null)
+						stmt.close();
+				}
+				catch(ClassNotFoundException error) {
+					JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+					return;
+				}
+				
+				catch(SQLException error) {
+					JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+					return;
+				}
+				try {
+					Class.forName("com.mysql.cj.jdbc.Driver");
+					Connection conn =
+					DriverManager.getConnection(url, mysql_user, mysql_password);
+					String sql = "DELETE FROM nonmember where number = '"+id+"'";
+					Statement stmt = conn.createStatement();
+					stmt.executeUpdate(sql);
+					if(conn!=null)
+						conn.close();
+					if(stmt!=null)
+						stmt.close();
+				}
+				catch(ClassNotFoundException error) {
+					JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+					return;
+				}
+				
+				catch(SQLException error) {
+					JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+					return;
+				}
+			}
+		}
+	}
+	
 	class seat extends JPanel{
 		//버튼 객체 생성
 		JButton[] seat = new JButton[60];
 		JButton admin = new JButton("관리");
 		public seat() {
+			
 			this.setBackground(back_c);
 			this.setLayout(null);
 			this.setSize(1280,700);
@@ -68,7 +299,7 @@ public class MainFrame extends JFrame{
 				}
 			});
 			
-			try { // 선택한 좌석의 이용여부 저장
+			try { // 선택한 좌석이 이용여부라면 색깔 다르게 지정
 				// MySQL DB용 드라이로드
 				Class.forName("com.mysql.cj.jdbc.Driver");
 				Connection conn =
@@ -230,6 +461,41 @@ public class MainFrame extends JFrame{
 			seat[59].setLocation(1075, 570);
 			this.add(seat[59]);
 			
+			for(int i = 0;i<60;i++) {
+				if(ths[i] != null)
+					ths[i].stop();
+			}
+			try { /////////////////////남은 시간 차감////////////////////////////////
+				// MySQL DB용 드라이로드
+				Class.forName("com.mysql.cj.jdbc.Driver");
+				Connection conn =
+				DriverManager.getConnection(url, mysql_user, mysql_password);
+				String sql = "SELECT ID FROM seat WHERE use_Status = 1"; // 선택한 좌석의 사용여부
+				
+				Statement stmt = conn.createStatement();
+				ResultSet result2 = stmt.executeQuery(sql);	
+				int i = 0;
+				while(result2.next()) {
+					String id = result2.getString(1);
+					TimerRunnable runnable = new TimerRunnable(id);
+					ths[i] = new Thread(runnable);
+					ths[i].start();
+					i ++;
+					System.out.println(id);
+				}	
+				if(conn!=null)    //db 연결해제
+					conn.close();
+				if(stmt!=null)
+					stmt.close();
+			}
+			catch(ClassNotFoundException error) {
+				JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+				return;
+			}
+			catch(SQLException error) {
+				JOptionPane.showMessageDialog(null, "DB접속오류");
+				return;
+			}
 			
 			for(int i = 0; i < 60 ; i++) {
 				seat[i].addActionListener(new ActionListener(){
@@ -248,6 +514,7 @@ public class MainFrame extends JFrame{
 							ResultSet result2 = stmt.executeQuery(sql);	
 							while(result2.next()) {
 								usestatus = result2.getInt(1);
+							
 							}	
 							if(conn!=null)    //db 연결해제
 								conn.close();
@@ -266,13 +533,16 @@ public class MainFrame extends JFrame{
 						if(usestatus == 1) { // 이용중인 좌석선택 시
 							String password = null;
 							boolean change = false;
+							boolean nonchange = false; // 비회원 퇴실 시 삭제를 위해
 							JPasswordField pf = new JPasswordField();
 							int okCxl = JOptionPane.showConfirmDialog(null, pf, "Enter Password", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
 							if (okCxl == JOptionPane.OK_OPTION) {
 							  password = new String(pf.getPassword());
 							}
-							
+							else {
+								return;
+							}
 							try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
 								Class.forName("com.mysql.cj.jdbc.Driver");
 								Connection conn =
@@ -319,9 +589,10 @@ public class MainFrame extends JFrame{
 										if (rs.next()) {
 											if (rs.getString(1).equals(password)) {
 												change = true;
+												nonchange = true;
 											}
 											else {
-												JOptionPane.showMessageDialog(null, "비밀번호가 틀렸습니다.");
+												JOptionPane.showMessageDialog(null, "전화번호가 틀렸습니다.");
 											}
 										}
 
@@ -348,7 +619,7 @@ public class MainFrame extends JFrame{
 								JOptionPane.showMessageDialog(null, "DB접속오류22" + error.getMessage());
 								return;
 							}
-							////////////////////////////////////////////////////////////////////////
+							////////////////////////////////////////////  좌석이동 ////////////////////////////
 							if(change) {
 								int result_n = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
 										"좌석이동을 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
@@ -357,7 +628,7 @@ public class MainFrame extends JFrame{
 										Class.forName("com.mysql.cj.jdbc.Driver");
 										Connection conn =
 										DriverManager.getConnection(url, mysql_user, mysql_password);
-										String sql = "UPDATE seat SET change_count = change_count +1,use_count = use_count+1, use_time = "
+										String sql = "UPDATE seat SET change_count = change_count +1, use_time = "
 												+ "addtime(use_time, timediff(now(),buytime)), " // 현재시간과 결제시 시간 계산 후 시간 더하기
 												+ "use_Status = 0, buytime = null, ID = null WHERE (seat_number = '" // buytime 초기화
 												+selected_seat + "')"; // 현재 좌석의 자리이동횟수, 여부, 사용시간 변경
@@ -385,10 +656,66 @@ public class MainFrame extends JFrame{
 									MainFrame.this.add(s1);
 									MainFrame.this.setVisible(true);		
 								}
-								else {
+								else {////////////////////////////////////////////  퇴실   ////////////////////////////
 									int answer = JOptionPane.showConfirmDialog(null,	// OptionPaneEx.this : 가운데 출력
 											"퇴실 하시겠습니까?", "스터디 카페", JOptionPane.YES_NO_OPTION);
+									if(answer == JOptionPane.YES_OPTION) {
+										try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+											Class.forName("com.mysql.cj.jdbc.Driver");
+											Connection conn =
+											DriverManager.getConnection(url, mysql_user, mysql_password);
+											String sql = "UPDATE seat SET use_time = addtime(use_time, timediff(now(),buytime)), " // 현재시간과 결제시 시간 계산 후 시간 더하기
+													+ "use_Status = 0, buytime = null, ID = null WHERE (seat_number = '" // buytime 초기화
+													+selected_seat + "')"; // 현재 좌석의 자리이동횟수, 여부, 사용시간 변경
+											System.out.println(sql);
+											Statement stmt = conn.createStatement();
+											stmt.executeUpdate(sql);
+											if(conn!=null)
+												conn.close();
+											if(stmt!=null)
+												stmt.close();
+										}
+										catch(ClassNotFoundException error) {
+											JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+											return;
+										}
+										
+										catch(SQLException error) {
+											JOptionPane.showMessageDialog(null, "DB접속오류22"+error.getMessage());
+											return;
+										}
+										if(nonchange) {
+											try { // 선택한 좌석의 이용횟수 +1 이용여부 1(true)
+												Class.forName("com.mysql.cj.jdbc.Driver");
+												Connection conn =
+												DriverManager.getConnection(url, mysql_user, mysql_password);
+												String sql = "DELETE FROM nonmember where number = '"+seat_id+"'"; // 현재 좌석의 자리이동횟수, 여부, 사용시간 변경
+												System.out.println(sql);
+												Statement stmt = conn.createStatement();
+												stmt.executeUpdate(sql);
+												if(conn!=null)
+													conn.close();
+												if(stmt!=null)
+													stmt.close();
+											}
+											catch(ClassNotFoundException error) {
+												JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+												return;
+											}
+											
+											catch(SQLException error) {
+												JOptionPane.showMessageDialog(null, "여긴가?");
+												return;
+											}
+										}
+										MainFrame.this.setVisible(false);
+										MainFrame.this.getContentPane().removeAll();
+										seat s = new seat();
+										MainFrame.this.add(s);
+										MainFrame.this.setVisible(true);
+									}
 								}
+								
 							}
 						}
 							
@@ -956,7 +1283,7 @@ public class MainFrame extends JFrame{
 									Connection conn1 =
 									DriverManager.getConnection(url, mysql_user, mysql_password);
 									String upsql = "UPDATE seat SET use_count = use_count+1,"
-											+ "use_Status = 1, buytime = now() WHERE (seat_number = '"
+											+ "use_Status = 1, buytime = now() , ID = '"+mpn+"' WHERE (seat_number = '"
 											+selected_seat + "')"; // 선택한 좌석의 이용횟수, 여부 변경
 									Statement upstmt = conn1.createStatement();
 									upstmt.executeUpdate(upsql);
@@ -1042,6 +1369,29 @@ public class MainFrame extends JFrame{
 						JOptionPane.showMessageDialog(null, "DB접속오류");
 						return;
 					}
+					try {
+						// MySQL DB용 드라이로드
+						Class.forName("com.mysql.cj.jdbc.Driver");
+						Connection conn =
+						DriverManager.getConnection(url, mysql_user, mysql_password);
+						String sql = "UPDATE member SET time = '"+time+"' where ID = '"+mpn+"'";
+						Statement stmt = conn.createStatement();
+						stmt.executeUpdate(sql);
+						
+						if(conn!=null)    //db 연결해제
+							conn.close();
+						if(stmt!=null)
+							stmt.close();
+					}
+					catch(ClassNotFoundException error) {
+						JOptionPane.showMessageDialog(null, "mysql driver 미설치 또는 드라이버 이름 오류");
+						return;
+					}
+					catch(SQLException error) {
+						JOptionPane.showMessageDialog(null, "DB접속오류");
+						return;
+					}
+					
 					
 					JOptionPane.showMessageDialog(null, "구매완료 !", "구매완료",JOptionPane.PLAIN_MESSAGE);
 					MainFrame.this.setVisible(false);
@@ -1736,7 +2086,12 @@ public class MainFrame extends JFrame{
 			setLocation(0,480);
 			next.setBounds(700, 10, 30, 30);
 			prev.setBounds(650, 10, 30, 30);
-					
+			
+			next.setBackground(back_c);
+			next.setBorderPainted(false);
+			prev.setBackground(back_c);
+			prev.setBorderPainted(false);
+			
 			add(prev);
 			add(next);
 		}
